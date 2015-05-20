@@ -26,57 +26,22 @@ if (opm_ROOT)
   set (OPM_ROOT ${opm_ROOT})
 endif ()
 
-# inherit "suite" root if not specifically set for this library
-if ((NOT OPM_PARSER_ROOT) AND OPM_ROOT)
-  set (OPM_PARSER_ROOT "${OPM_ROOT}/opm-parser")
-endif ()
-
-# Detect the build dir suffix or subdirectory
-string(REGEX REPLACE "${PROJECT_SOURCE_DIR}/?(.*)" "\\1"  BUILD_DIR_SUFFIX "${PROJECT_BINARY_DIR}")
-
 # if a root is specified, then don't search in system directories
 # or in relative directories to this one
 if (OPM_PARSER_ROOT)
   set (_no_default_path "NO_DEFAULT_PATH")
-  set (_opm_parser_source "")
-  set (_opm_parser_build "")
 else ()
   set (_no_default_path "")
-  set (_opm_parser_source
-    "${PROJECT_SOURCE_DIR}/../opm-parser")
-  set (_opm_parser_build
-    "${PROJECT_BINARY_DIR}/../opm-parser"
-    "${PROJECT_BINARY_DIR}/../opm-parser${BUILD_DIR_SUFFIX}"
-    "${PROJECT_BINARY_DIR}/../../opm-parser/${BUILD_DIR_SUFFIX}")
 endif ()
 
 # use this header as signature
 find_path (OPM_PARSER_INCLUDE_DIR
   NAMES "opm/parser/eclipse/Parser/Parser.hpp"
   HINTS "${OPM_PARSER_ROOT}"
-  PATHS ${_opm_parser_source}
   PATH_SUFFIXES "include"
   DOC "Path to OPM parser header files"
   ${_no_default_path} )
 
-# backup: if we didn't find any headers there, but a CMakeCache.txt,
-# then it is probably a build directory; read the CMake cache of
-# opm-parser to figure out where the source directory is
-if ((NOT OPM_PARSER_INCLUDE_DIR) AND
-        (OPM_PARSER_ROOT AND (EXISTS "${OPM_PARSER_ROOT}/CMakeCache.txt")))
-  set (_regex "^OPMParser_SOURCE_DIR:STATIC=\(.*\)$")
-  file (STRINGS
-        "${OPM_PARSER_ROOT}/CMakeCache.txt"
-        _cache_entry
-        REGEX "${_regex}")
-  string(REGEX REPLACE "${_regex}" "\\1"
-        OPM_PARSER_INCLUDE_DIR
-        "${_cache_entry}")
-  if (OPM_PARSER_INCLUDE_DIR)
-        set (OPM_PARSER_INCLUDE_DIR "${OPM_PARSER_INCLUDE_DIR}"
-          CACHE PATH "Path to OPM parser header files" FORCE)
-  endif ()
-endif ()
 
 # find out the size of a pointer. this is required to only search for
 # libraries in the directories relevant for the architecture
@@ -88,9 +53,7 @@ endif ()
 find_library (OPM_PARSER_LIBRARY
   NAMES "Parser"
   HINTS "${OPM_PARSER_ROOT}"
-  PATHS ${_opm_parser_build}
-  PATH_SUFFIXES "lib" "lib${_BITS}" "lib/${CMAKE_LIBRARY_ARCHITECTURE}"
-                "opm/parser/eclipse"
+  PATH_SUFFIXES "lib" "lib${_BITS}" 
   DOC "Path to OPM parser library archive/shared object files"
   ${_no_default_path} )
 
@@ -98,9 +61,7 @@ find_library (OPM_PARSER_LIBRARY
 find_library (OPM_JSON_LIBRARY
   NAMES "opm-json"
   HINTS "${OPM_PARSER_ROOT}"
-  PATHS ${_opm_parser_build}
-  PATH_SUFFIXES "lib" "lib${_BITS}" "lib/${CMAKE_LIBRARY_ARCHITECTURE}"
-                "opm/json"
+  PATH_SUFFIXES "lib" "lib${_BITS}" 
   DOC "Path to OPM JSON library archive/shared object files"
   ${_no_default_path} )
 
