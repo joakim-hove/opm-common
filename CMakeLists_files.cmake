@@ -21,11 +21,11 @@
 #	                      the library needs it.
 
 list (APPEND MAIN_SOURCE_FILES
-      opm/common/data/DataContainer.cpp
+      opm/common/data/SimulationDataContainer.cpp
 )
 
 list (APPEND TEST_SOURCE_FILES
-      tests/test_DataContainer.cpp
+      tests/test_SimulationDataContainer.cpp
       )
 
 list (APPEND TEST_DATA_FILES
@@ -41,7 +41,7 @@ list (APPEND PROGRAM_SOURCE_FILES
 
 
 list( APPEND PUBLIC_HEADER_FILES
-      opm/common/data/DataContainer.hpp
+      opm/common/data/SimulationDataContainer.hpp
       opm/common/ErrorMacros.hpp
       opm/common/Exceptions.hpp
       opm/common/utility/platform_dependent/disable_warnings.h
