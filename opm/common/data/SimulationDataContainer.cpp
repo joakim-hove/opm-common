@@ -23,6 +23,14 @@
 
 namespace Opm {
 
+    const std::string SimulationDataContainer::PRESSURE = "PRESSURE";
+    const std::string SimulationDataContainer::TEMPERATURE = "TEMPERATURE";
+    const std::string SimulationDataContainer::SATURATION = "SATURATION";
+  
+    const std::string SimulationDataContainer::FACEPRESSURE = "FACEPRESSURE";
+    const std::string SimulationDataContainer::FACEFLUX = "FACEFLUX";
+
+
     SimulationDataContainer::SimulationDataContainer(size_t num_cells, size_t num_faces , size_t num_phases) :
         m_num_cells( num_cells),
         m_num_faces( num_faces),
@@ -188,55 +196,15 @@ namespace Opm {
         return m_cell_data;
     }
 
-
     /* This is very deprecated. */
     void SimulationDataContainer::addDefaultFields() {
-        registerCellData("PRESSURE" , 1 , 0.0);
-        registerCellData("SATURATION" , m_num_phases , 0.0);
-        registerCellData("TEMPERATURE" , 1 , 273.15 + 20);
+        registerCellData(SimulationDataContainer::PRESSURE , 1 , 0.0);
+        registerCellData(SimulationDataContainer::SATURATION , m_num_phases , 0.0);
+        registerCellData(SimulationDataContainer::TEMPERATURE , 1 , 273.15 + 20);
 
-        registerFaceData("FACEPRESSURE" , 1 , 0.0 );
-        registerFaceData("FACEFLUX" , 1 , 0.0 );
+        registerFaceData(SimulationDataContainer::FACEPRESSURE , 1 , 0.0 );
+        registerFaceData(SimulationDataContainer::FACEFLUX , 1 , 0.0 );
     }
 
-    std::vector<double>& SimulationDataContainer::pressure( ) {
-        return getCellData("PRESSURE");
-    }
-
-    std::vector<double>& SimulationDataContainer::temperature() {
-        return getCellData("TEMPERATURE");
-    }
-
-    std::vector<double>& SimulationDataContainer::saturation() {
-        return getCellData("SATURATION");
-    }
-
-    std::vector<double>& SimulationDataContainer::facepressure() {
-        return getFaceData("FACEPRESSURE");
-    }
-
-    std::vector<double>& SimulationDataContainer::faceflux() {
-        return getFaceData("FACEFLUX");
-    }
-
-    const std::vector<double>& SimulationDataContainer::pressure( ) const {
-        return getCellData("PRESSURE");
-    }
-
-    const std::vector<double>& SimulationDataContainer::temperature() const {
-        return getCellData("TEMPERATURE");
-    }
-
-    const std::vector<double>& SimulationDataContainer::saturation() const {
-        return getCellData("SATURATION");
-    }
-
-    const std::vector<double>& SimulationDataContainer::facepressure() const {
-        return getFaceData("FACEPRESSURE");
-    }
-
-    const std::vector<double>& SimulationDataContainer::faceflux() const {
-        return getFaceData("FACEFLUX");
-    }
 
 }

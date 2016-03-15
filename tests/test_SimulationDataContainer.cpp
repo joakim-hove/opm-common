@@ -40,39 +40,6 @@ BOOST_AUTO_TEST_CASE(TestCreate) {
 
 
 
-/*
-  This test verifies that the default fields are correctly registered;
-  this special behavior is deprecated - and the test should die; along
-  with the behavior.
-*/
-
-BOOST_AUTO_TEST_CASE(TestRegisterDefaults) {
-    SimulationDataContainer container(1000 , 10 , 2);
-
-    BOOST_CHECK( container.hasCellData("PRESSURE") );
-    BOOST_CHECK( container.hasCellData("SATURATION") );
-
-    {
-        auto pressure = container.getCellData("PRESSURE");
-        BOOST_CHECK_EQUAL( pressure.size() , 1000U );
-        BOOST_CHECK_EQUAL( container.numCellDataComponents( "PRESSURE") , 1U);
-
-        auto sat = container.getCellData("SATURATION");
-        BOOST_CHECK_EQUAL( sat.size() , 1000U*2 );
-        BOOST_CHECK_EQUAL( container.numCellDataComponents( "SATURATION") , 2U);
-    }
-
-    {
-        auto pressure = container.pressure();
-        BOOST_CHECK_EQUAL( pressure.size() , 1000U );
-
-        auto sat = container.saturation();
-        BOOST_CHECK_EQUAL( sat.size() , 1000U*2 );
-    }
-
-    BOOST_CHECK( container.hasFaceData("FACEPRESSURE") );
-    BOOST_CHECK( container.hasFaceData("FACEFLUX") );
-}
 
 
 

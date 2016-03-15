@@ -44,6 +44,17 @@ namespace Opm {
 
     class SimulationDataContainer {
     public:
+
+	// The constants PRESSURE,TEMPERATURE, SATURATION,
+	// FACEPRESSURE and FACEPRESSURE are defined to support
+	// compile time checking of the keys used in the data container.
+        static const std::string PRESSURE;
+        static const std::string TEMPERATURE;
+        static const std::string SATURATION;
+	static const std::string FACEPRESSURE;
+	static const std::string FACEFLUX;
+      
+
         SimulationDataContainer(size_t num_cells, size_t num_faces , size_t num_phases);
 
         size_t numPhases() const;
@@ -78,21 +89,6 @@ namespace Opm {
         /// field @key. All the cells in @cells will be set to the
         /// values in @values.
         void setCellDataComponent( const std::string& key , size_t component , const std::vector<int>& cells , const std::vector<double>& values);
-
-        /* Old deprecated */
-        std::vector<double>& pressure    ();
-        std::vector<double>& temperature ();
-        std::vector<double>& saturation  ();
-
-        std::vector<double>& facepressure();
-        std::vector<double>& faceflux    ();
-
-        const std::vector<double>& pressure    () const;
-        const std::vector<double>& temperature () const;
-        const std::vector<double>& saturation  () const;
-
-        const std::vector<double>& facepressure() const;
-        const std::vector<double>& faceflux    () const;
 
         const std::unordered_map<std::string, std::vector<double>>& cellData() const;
         std::unordered_map<std::string, std::vector<double>>& cellData();
