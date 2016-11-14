@@ -1,0 +1,195 @@
+#!/usr/bin/env python
+import os
+import sys
+import requests
+import json
+import subprocess
+import datetime
+from argparse import ArgumentParser
+import boto3
+from botocore.exceptions import ClientError
+
+ACCESS_KEY = os.getenv("S3_ACCESS_KEY") 
+SECRET_KEY = os.getenv("S3_SECRET_KEY") 
+S3_bucket = "opm-build-db"
+
+CMAKE_FLAGS = {
+    "OPM"     : ["-DENABLE_PYTHON=ON", "-DSILENCE_EXTERNAL_WARNINGS=True", "-DUSE_QUADMATH=OFF", "-DADD_DISABLED_CTESTS=OFF"] ,
+    "default" : []
+}
+
+
+def get_flags( git_user , git_repo):
+    if git_repo in CMAKE_FLAGS:
+        return CMAKE_FLAGS[git_repo]
+    elif git_user in CMAKE_FLAGS:
+        return CMAKE_FLAGS[git_user]
+    else:
+        return CMAKE_FLAGS["default"]
+
+
+class WorkPath(object):
+    def __init__(self , path):
+        self.cwd = os.getcwd()
+        if not os.path.isdir(path):
+            os.makedirs( path )
+            
+        os.chdir( path )
+
+    def exit(self):
+        os.chdir( self.cwd )
+
+
+class WorkPathContext(object):
+
+    def __init__(self , path):
+        self.__path = path
+
+    def __enter__(self):
+        return self.__path
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__path.exit( )
+        return False
+
+
+def workPath(path):
+    return WorkPathContext( WorkPath( path ))
+    
+
+
+class S3(object):
+
+    def __init__(self , git_user , git_repo , sha):
+        self.git_user = git_user
+        self.git_repo = git_repo
+        self.sha = sha
+
+        s3 = boto3.resource("s3",
+                            aws_access_key_id=ACCESS_KEY,
+                            aws_secret_access_key=SECRET_KEY)
+        self.bucket = s3.Bucket( S3_bucket )
+
+        
+    def key(self):
+        return "%s-%s-%s-%s.tar.gz" % (self.git_user, self.git_repo , self.sha , self.git_repo )
+
+    
+    def local(self):
+        return "%s.tar.gz" % git_repo
+    
+        
+    def download(self):
+        local = self.local( ) 
+        try:
+            self.bucket.download_file( self.key( ) , local)
+        except ClientError:
+            return False
+    
+        subprocess.check_call(["tar" , "-xzf" , local])
+        os.unlink( local )
+        return True
+
+
+    def upload(self):
+        local = self.local()
+        key = self.key()
+        subprocess.check_call(["tar" , "-czf" , local , git_repo])
+        
+        print("Uploading build of %s to %s" % (local , key))
+        self.bucket.upload_file( local , key)
+        os.unlink( local )
+        
+        build_list = []
+        for key in bucket.objects.all():
+            if key.key.startswith( "%s-%s" % (git_user , git_repo )):
+                build_list.append( key )
+
+        build_list = sorted( build_list , key = lambda key : key.last_modified)
+        for key in build_list[:-2]:
+            key.delete()
+
+            
+
+    def clean(self):
+        for key in self.bucket.objects.all():
+            key.delete( )
+
+
+            
+
+def get_sha( git_user , git_repo , git_branch = None , git_tag = None):
+    if git_tag:
+        api_url = "https://api.github.com/repos/%s/%s/git/tags/%s" % (git_user , git_repo , git_tag)
+    else:
+        api_url = "https://api.github.com/repos/%s/%s/git/refs/heads/%s" % (git_user , git_repo , git_branch)
+ 
+    
+    response = requests.get( api_url )
+    if response.status_code == 200:
+        data = json.loads( response.content )
+        sha = data["object"]["sha"]
+        return sha
+    else:
+        None
+
+
+
+def clone( git_user , git_repo ):
+    git_url = "https://github.com/%s/%s/" % (git_user , git_repo)
+    subprocess.check_call(["git" , "clone" , git_url])
+
+
+def build( git_user , git_repo ):
+    flags = get_flags( git_user , git_repo )
+
+    with workPath("%s/build" % git_repo):
+        subprocess.check_call( ["cmake"] + flags + [".."] )
+        subprocess.check_call( ["make"] )
+
+
+def offline_build( git_user , git_repo ):
+    clone( git_user , git_repo )
+    build(git_user , git_repo)
+
+    
+#-----------------------------------------------------------------
+parser = ArgumentParser( )
+parser.add_argument("git_user")
+parser.add_argument("git_repo")
+parser.add_argument("--upstream" , action = "store_true" , dest="upstream")
+parser.add_argument("--git-branch" , default = "master" , dest = "branch")
+parser.add_argument("--git-tag" , dest = "tag")
+
+if len(sys.argv) > 3:
+    git_ref = sys.argv[3]
+
+rebuild = True
+upload = False
+
+args = parser.parse_args( )
+git_user = args.git_user
+git_repo = args.git_repo
+upstream = args.upstream
+
+
+sha = get_sha( git_user , git_repo , git_branch = args.branch , git_tag = args.tag)
+if sha is None:
+    offline_build( git_user , git_repo )
+else:
+    s3 = S3( git_user , git_repo , sha )
+    if s3.download( ):
+        upload = False
+        if upstream:
+            rebuild = False
+    else:
+        clone( git_user , git_repo )
+        if upstream:
+            upload = True
+            
+    if rebuild:
+        build(git_user , git_repo)
+
+    if upload:
+        s3.upload( )
+    
