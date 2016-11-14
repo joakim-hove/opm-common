@@ -9,12 +9,13 @@ from argparse import ArgumentParser
 import boto3
 from botocore.exceptions import ClientError
 
-ACCESS_KEY = os.getenv("S3_ACCESS_KEY") 
-SECRET_KEY = os.getenv("S3_SECRET_KEY") 
-S3_bucket = "opm-build-db"
+ACCESS_KEY = os.getenv("ARTIFACTS_KEY") 
+SECRET_KEY = os.getenv("ARTIFACTS_SECRET")
+S3_bucket  = os.getenv("ARTIFACTS_BUCKET") 
 
 CMAKE_FLAGS = {
-    "OPM"     : ["-DENABLE_PYTHON=ON", "-DSILENCE_EXTERNAL_WARNINGS=True", "-DUSE_QUADMATH=OFF", "-DADD_DISABLED_CTESTS=OFF"] ,
+    "OPM"     : ["-DENABLE_PYTHON=ON", "-DBUILD_SHARED_LIBS=ON","-DSILENCE_EXTERNAL_WARNINGS=ON", "-DUSE_QUADMATH=OFF", "-DADD_DISABLED_CTESTS=OFF", "-DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-3/root/usr/bin/g++",
+                 "-DCMAKE_PREFIX_PATH=/private/joaho/work/ERT/install;/project/res/x86_64_RH_6/share/opm/ert/latest;/project/res/x86_64_RH_6/share/opm/SuperLU_4.0;/project/res/x86_64_RH_6/share/opm/boost/1.58;/project/res/x86_64_RH_6/share/opm/SuiteSparse;/project/res/x86_64_RH_6/share/opm/Eigen3/Eigen3;/project/res/x86_64_RH_6/share/opm/dune/2.3"],
     "default" : []
 }
 
@@ -101,7 +102,7 @@ class S3(object):
         os.unlink( local )
         
         build_list = []
-        for key in bucket.objects.all():
+        for key in self.bucket.objects.all():
             if key.key.startswith( "%s-%s" % (git_user , git_repo )):
                 build_list.append( key )
 
@@ -140,17 +141,19 @@ def clone( git_user , git_repo ):
     subprocess.check_call(["git" , "clone" , git_url])
 
 
-def build( git_user , git_repo ):
+def build( git_user , git_repo , upstream):
     flags = get_flags( git_user , git_repo )
 
     with workPath("%s/build" % git_repo):
         subprocess.check_call( ["cmake"] + flags + [".."] )
         subprocess.check_call( ["make"] )
+        if not upstream:
+            subprocess.check_call( ["ctest", "--output-on-failure"] )
+        
 
-
-def offline_build( git_user , git_repo ):
+def offline_build( git_user , git_repo , upstream):
     clone( git_user , git_repo )
-    build(git_user , git_repo)
+    build(git_user , git_repo , upstream)
 
     
 #-----------------------------------------------------------------
@@ -161,8 +164,6 @@ parser.add_argument("--upstream" , action = "store_true" , dest="upstream")
 parser.add_argument("--git-branch" , default = "master" , dest = "branch")
 parser.add_argument("--git-tag" , dest = "tag")
 
-if len(sys.argv) > 3:
-    git_ref = sys.argv[3]
 
 rebuild = True
 upload = False
@@ -175,10 +176,11 @@ upstream = args.upstream
 
 sha = get_sha( git_user , git_repo , git_branch = args.branch , git_tag = args.tag)
 if sha is None:
-    offline_build( git_user , git_repo )
+    offline_build( git_user , git_repo , upstream)
 else:
     s3 = S3( git_user , git_repo , sha )
     if s3.download( ):
+        print("Using cached version: %s of %s" % (sha , git_repo))
         upload = False
         if upstream:
             rebuild = False
@@ -188,7 +190,7 @@ else:
             upload = True
             
     if rebuild:
-        build(git_user , git_repo)
+        build(git_user , git_repo , upstream)
 
     if upload:
         s3.upload( )

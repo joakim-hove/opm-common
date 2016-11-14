@@ -58,7 +58,7 @@ function install_python_deps {
     conda config --set always_yes yes --set changeps1 no
     conda update -q conda
 
-    conda install numpy
+    conda install numpy boto3
 }
 
 
