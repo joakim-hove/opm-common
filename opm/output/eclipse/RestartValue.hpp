@@ -30,11 +30,12 @@ namespace Opm {
 
         std::string key;
         UnitSystem::measure dim;
-        bool required = true;
+        bool required;
 
         RestartKey( const std::string& _key, UnitSystem::measure _dim)
             : key(_key),
-              dim(_dim)
+              dim(_dim),
+              required(true)
         {}
 
 
@@ -55,12 +56,13 @@ namespace Opm {
 
     struct RestartValue {
 
+        using extra_vector = std::vector<std::pair<RestartKey, std::vector<double>>>;
+
         data::Solution solution;
         data::Wells wells;
-        std::map<std::string,std::vector<double>> extra = {};
+        extra_vector extra = {};
 
-
-        RestartValue(data::Solution sol, data::Wells wells_arg, std::map<std::string, std::vector<double>> extra_arg) :
+        RestartValue(data::Solution sol, data::Wells wells_arg, extra_vector extra_arg) :
             solution(std::move(sol)),
             wells(std::move(wells_arg)),
             extra(std::move(extra_arg))
@@ -72,6 +74,30 @@ namespace Opm {
             solution(std::move(sol)),
             wells(std::move(wells_arg))
         {
+        }
+
+
+
+        bool has_extra(const std::string& key) const {
+            const auto iter = std::find_if(this->extra.begin(), this->extra.end(), [&](std::pair<RestartKey, std::vector<double>> pair) {return (pair.first.key == key);});
+            return  (iter != this->extra.end());
+        }
+
+        void add_extra(const std::string& key, UnitSystem::measure dimension, std::vector<double> data) {
+            if (key.size() > 8)
+                throw std::runtime_error("The keys used for Eclipse output must be maximum 8 characters long.");
+
+            if (this->has_extra(key))
+                throw std::runtime_error("The keys in the extra vector must be unique.");
+
+            if (this->solution.has(key))
+                throw std::runtime_error("The key is already present in the solution section.");
+
+            this->extra.push_back( std::make_pair(RestartKey(key, dimension), data));
+        }
+
+        void add_extra(const std::string& key, const std::vector<double>& data) {
+            this->add_extra(key, UnitSystem::measure::identity, data);
         }
 
     };

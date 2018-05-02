@@ -224,7 +224,7 @@ RestartValue load( const std::string& filename,
                    const EclipseState& es,
                    const EclipseGrid& grid,
                    const Schedule& schedule,
-                   const std::map<std::string, bool>& extra_keys) {
+                   const std::vector<RestartKey>& extra_keys) {
 
     int sim_step = std::max(report_step - 1, 0);
     const bool unified                   = ( ERT::EclFiletype( filename ) == ECL_UNIFIED_RESTART_FILE );
@@ -251,15 +251,16 @@ RestartValue load( const std::string& filename,
     RestartValue rst_value( restoreSOLUTION( file_view, solution_keys, units , grid.getNumActive( )),
                             restore_wells( opm_xwel, opm_iwel, sim_step , es, grid, schedule));
 
-    for (const auto& pair : extra_keys) {
-        const std::string& key = pair.first;
-        bool required = pair.second;
+    for (const auto& extra : extra_keys) {
+        const std::string& key = extra.key;
+        bool required = extra.required;
 
         if (ecl_file_view_has_kw( file_view , key.c_str())) {
             const ecl_kw_type * ecl_kw = ecl_file_view_iget_named_kw( file_view , key.c_str() , 0 );
             const double * data_ptr = ecl_kw_get_double_ptr( ecl_kw );
             const double * end_ptr  = data_ptr + ecl_kw_get_size( ecl_kw );
-            rst_value.extra[ key ] = { data_ptr, end_ptr };
+            std::vector<double> values(data_ptr, end_ptr);
+            rst_value.extra.emplace_back(std::make_pair(extra, values));
         } else if (required)
             throw std::runtime_error("No such key in file: " + key);
 
@@ -505,10 +506,10 @@ void writeHeader(ecl_rst_file_type * rst_file,
   }
 
 
-void writeExtraData(ecl_rst_file_type* rst_file, const std::map<std::string,std::vector<double>>& extra_data) {
-    for (const auto& pair : extra_data) {
-        const std::string& key = pair.first;
-        const std::vector<double>& data = pair.second;
+  void writeExtraData(ecl_rst_file_type* rst_file, const RestartValue::extra_vector& extra_data) {
+    for (const auto& extra_value : extra_data) {
+        const std::string& key = extra_value.first.key;
+        const std::vector<double>& data = extra_value.second;
         {
             ecl_kw_type * ecl_kw = ecl_kw_alloc_new_shared( key.c_str() , data.size() , ECL_DOUBLE , const_cast<double *>(data.data()));
             ecl_rst_file_add_kw( rst_file , ecl_kw);
@@ -539,12 +540,12 @@ void writeWell(ecl_rst_file_type* rst_file, int sim_step, const EclipseState& es
 
 void checkSaveArguments(const data::Solution& cells,
                         const EclipseGrid& grid,
-                        const std::map<std::string, std::vector<double>>& extra_data) {
+                        const RestartValue::extra_vector& extra_data) {
 
     const std::set<std::string> reserved_keys = {"LOGIHEAD", "INTEHEAD" ,"DOUBHEAD", "IWEL", "XWEL","ICON", "XCON" , "OPM_IWEL" , "OPM_XWEL", "ZWEL"};
 
-    for (const auto& pair : extra_data) {
-        const std::string& key = pair.first;
+    for (const auto& extra_value : extra_data) {
+        const std::string& key = extra_value.first.key;
         if (key.size() > 8)
             throw std::runtime_error("The keys in extra data must have maximum eight characaters");
 
