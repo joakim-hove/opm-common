@@ -33,8 +33,16 @@ namespace Opm {
         WellConnections(const WellConnections& src, const EclipseGrid& grid);
 
         using const_iterator = std::vector< Connection >::const_iterator;
+        void addConnection(int i, int j , int k ,
+                           double depth,
+                           WellCompletion::StateEnum state ,
+                           const Value<double>& connectionTransmissibilityFactor,
+                           const Value<double>& diameter,
+                           const Value<double>& skinFactor,
+                           const int satTableId,
+                           const WellCompletion::DirectionEnum direction = WellCompletion::DirectionEnum::Z);
 
-        void add( Connection );
+        void addConnection(const Connection& old, int new_complump);
         size_t size() const;
         const Connection& get(size_t index) const;
         const Connection& getFromIJK(const int i, const int j, const int k) const;
@@ -52,7 +60,7 @@ namespace Opm {
         ///     2. Choose next connection to be nearest to current in (i, j) sense.
         ///        If non-unique choose closest in z-depth (not logical cartesian k).
         ///
-        /// \param[in] well_i  logical cartesian i-coordinate of well head
+        /// \param[in] w ell_i  logical cartesian i-coordinate of well head
         /// \param[in] well_j  logical cartesian j-coordinate of well head
         /// \param[in] grid    EclipseGrid object, used for cell depths
         void orderConnections(size_t well_i, size_t well_j);
@@ -61,6 +69,7 @@ namespace Opm {
         bool operator!=( const WellConnections& ) const;
 
     private:
+        void add( Connection );
         std::vector< Connection > m_connections;
         size_t findClosestConnection(int oi, int oj, double oz, size_t start_pos);
         int headI, headJ;

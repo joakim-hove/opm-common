@@ -35,6 +35,22 @@ namespace Opm {
     {
     }
 
+    void WellConnections::addConnection(int i, int j , int k ,
+                                        double depth,
+                                        WellCompletion::StateEnum state ,
+                                        const Value<double>& connectionTransmissibilityFactor,
+                                        const Value<double>& diameter,
+                                        const Value<double>& skinFactor,
+                                        const int satTableId,
+                                        const WellCompletion::DirectionEnum direction) {
+
+    }
+
+    void WellConnections::addConnection(const Connection& old, int new_complump) {
+
+    }
+
+
     WellConnections::WellConnections(const WellConnections& src, const EclipseGrid& grid) {
         for (const auto& c : src) {
             if (grid.cellActive(c.getI(), c.getJ(), c.getK()))
