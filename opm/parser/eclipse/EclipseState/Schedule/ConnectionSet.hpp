@@ -30,7 +30,6 @@ namespace Opm {
     public:
         ConnectionSet() = default;
         // cppcheck-suppress noExplicitConstructor
-        ConnectionSet( std::initializer_list< Connection > );
         ConnectionSet(const ConnectionSet& src, const EclipseGrid& grid);
 
         using const_iterator = std::vector< Connection >::const_iterator;

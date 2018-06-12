@@ -28,10 +28,6 @@
 
 namespace Opm {
 
-    ConnectionSet::ConnectionSet( std::initializer_list< Connection > cs ) {
-        for( auto&& c : cs ) this->add( c );
-    }
-
 
     ConnectionSet::ConnectionSet(const ConnectionSet& src, const EclipseGrid& grid) {
         for (const auto& c : src) {
