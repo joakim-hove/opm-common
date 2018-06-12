@@ -28,7 +28,7 @@ namespace Opm {
 
     class WellConnections {
     public:
-        WellConnections() = default;
+        WellConnections(int headI, int headJ);
         // cppcheck-suppress noExplicitConstructor
         WellConnections(const WellConnections& src, const EclipseGrid& grid);
 
@@ -63,6 +63,7 @@ namespace Opm {
     private:
         std::vector< Connection > m_connections;
         size_t findClosestConnection(int oi, int oj, double oz, size_t start_pos);
+        int headI, headJ;
     };
 }
 

@@ -561,7 +561,7 @@ namespace Opm {
             for( auto* well : getWells( wellNamePattern ) ) {
                 const auto& currentWellConnections = well->getConnections(currentStep);
 
-                std::shared_ptr<WellConnections> newWellConnections = std::make_shared<WellConnections>();
+                std::shared_ptr<WellConnections> newWellConnections = std::make_shared<WellConnections>(well->getHeadI(), well->getHeadJ());
 
                 Opm::Value<int> I  = getValueItem(record.getItem("I"));
                 Opm::Value<int> J  = getValueItem(record.getItem("J"));
@@ -945,7 +945,7 @@ namespace Opm {
             };
 
             for( auto& well : this->getWells( wellname ) ) {
-                std::shared_ptr<WellConnections> new_completions = std::make_shared<WellConnections>();
+                std::shared_ptr<WellConnections> new_completions = std::make_shared<WellConnections>(well->getHeadI(), well->getHeadJ());
                 for( const auto& completion : well->getConnections( timestep ) )
                     new_completions->add( new_completion( completion ) );
 
@@ -1032,7 +1032,7 @@ namespace Opm {
             };
 
             for( auto* well : wells ) {
-                std::shared_ptr<WellConnections> new_completions=std::make_shared<WellConnections>();
+                std::shared_ptr<WellConnections> new_completions=std::make_shared<WellConnections>(well->getHeadI(), well->getHeadJ());
                 for( const auto& c : well->getConnections( currentStep ) )
                     new_completions->add( new_completion( c ) );
 

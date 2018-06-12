@@ -29,6 +29,12 @@
 namespace Opm {
 
 
+    WellConnections::WellConnections(int headI, int headJ) :
+        headI(headI),
+        headJ(headJ)
+    {
+    }
+
     WellConnections::WellConnections(const WellConnections& src, const EclipseGrid& grid) {
         for (const auto& c : src) {
             if (grid.cellActive(c.getI(), c.getJ(), c.getK()))
