@@ -48,7 +48,7 @@ namespace Opm {
           m_guideRateScalingFactor( timeMap, 1.0 ),
           m_efficiencyFactors (timeMap, 1.0 ),
           m_isProducer( timeMap, true ) ,
-          m_completions( timeMap, ConnectionSet{} ),
+          connections( timeMap, ConnectionSet{} ),
           m_productionProperties( timeMap, WellProductionProperties() ),
           m_injectionProperties( timeMap, WellInjectionProperties() ),
           m_polymerProperties( timeMap, WellPolymerProperties() ),
@@ -348,7 +348,7 @@ namespace Opm {
     }
 
     const ConnectionSet& Well::getConnections(size_t timeStep) const {
-        return m_completions.get( timeStep );
+        return connections.get( timeStep );
     }
 
     ConnectionSet Well::getActiveConnections(size_t timeStep, const EclipseGrid& grid) const {
@@ -356,7 +356,7 @@ namespace Opm {
     }
 
     const ConnectionSet& Well::getConnections() const {
-        return m_completions.back();
+        return connections.back();
     }
 
     void Well::addConnections(size_t time_step, const std::vector< Connection >& newConnections ) {
@@ -393,7 +393,7 @@ namespace Opm {
             new_set.orderConnections( headI, headJ );
         }
 
-        m_completions.update( time_step, std::move( new_set ) );
+        connections.update( time_step, std::move( new_set ) );
         addEvent( ScheduleEvents::COMPLETION_CHANGE , time_step );
     }
 
@@ -582,10 +582,10 @@ namespace Opm {
 
     void Well::filterConnections(const EclipseGrid& grid) {
         /*
-          The m_completions member variable is DynamicState<ConnectionSet>
+          The connections member variable is DynamicState<ConnectionSet>
           instance, hence this for loop is over all timesteps.
         */
-        for (auto& completions : m_completions)
+        for (auto& completions : connections)
             completions.filter(grid);
     }
 }

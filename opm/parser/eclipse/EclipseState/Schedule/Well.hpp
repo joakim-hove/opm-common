@@ -183,7 +183,7 @@ namespace Opm {
         DynamicState< double > m_efficiencyFactors;
 
         DynamicState< int > m_isProducer;
-        DynamicState< ConnectionSet > m_completions;
+        DynamicState< ConnectionSet > connections;
         DynamicState< WellProductionProperties > m_productionProperties;
         DynamicState< WellInjectionProperties > m_injectionProperties;
         DynamicState< WellPolymerProperties > m_polymerProperties;
