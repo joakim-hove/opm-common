@@ -48,7 +48,7 @@ namespace Opm {
           m_guideRateScalingFactor( timeMap, 1.0 ),
           m_efficiencyFactors (timeMap, 1.0 ),
           m_isProducer( timeMap, true ) ,
-          connections( timeMap, ConnectionSet{} ),
+          connections( timeMap, std::make_shared<ConnectionSet>() ),
           m_productionProperties( timeMap, WellProductionProperties() ),
           m_injectionProperties( timeMap, WellInjectionProperties() ),
           m_polymerProperties( timeMap, WellPolymerProperties() ),
@@ -348,7 +348,7 @@ namespace Opm {
     }
 
     const ConnectionSet& Well::getConnections(size_t timeStep) const {
-        return connections.get( timeStep );
+        return *connections.get( timeStep );
     }
 
     ConnectionSet Well::getActiveConnections(size_t timeStep, const EclipseGrid& grid) const {
@@ -356,23 +356,23 @@ namespace Opm {
     }
 
     const ConnectionSet& Well::getConnections() const {
-        return connections.back();
+        return *connections.back();
     }
 
     void Well::addConnections(size_t time_step, const std::vector< Connection >& newConnections ) {
-        auto new_set = this->getConnections( time_step );
-        int complnum_shift = new_set.size();
+        std::shared_ptr<ConnectionSet> new_set = std::make_shared<ConnectionSet>( this->getConnections(time_step) );
+        int complnum_shift = new_set->size();
 
         const auto headI = this->m_headI[ time_step ];
         const auto headJ = this->m_headJ[ time_step ];
 
-        auto prev_size = new_set.size();
+        auto prev_size = new_set->size();
         for( auto completion : newConnections ) {
             completion.fixDefaultIJ( headI , headJ );
             completion.shift_complnum( complnum_shift );
 
-            new_set.add( completion );
-            const auto new_size = new_set.size();
+            new_set->add( completion );
+            const auto new_size = new_set->size();
 
             /* Connections can be "re-added", i.e. same coordinates but with a
              * different set of properties. In this case they also inherit the
@@ -386,14 +386,14 @@ namespace Opm {
         this->addConnectionSet( time_step, new_set );
     }
 
-    void Well::addConnectionSet(size_t time_step, ConnectionSet new_set ){
+    void Well::addConnectionSet(size_t time_step, std::shared_ptr<ConnectionSet> new_set ){
         if( getWellConnectionOrdering() == WellCompletion::TRACK) {
             const auto headI = this->m_headI[ time_step ];
             const auto headJ = this->m_headJ[ time_step ];
-            new_set.orderConnections( headI, headJ );
+            new_set->orderConnections( headI, headJ );
         }
 
-        connections.update( time_step, std::move( new_set ) );
+        connections.update( time_step, new_set );
         addEvent( ScheduleEvents::COMPLETION_CHANGE , time_step );
     }
 
@@ -585,7 +585,7 @@ namespace Opm {
           The connections member variable is DynamicState<ConnectionSet>
           instance, hence this for loop is over all timesteps.
         */
-        for (auto& completions : connections)
-            completions.filter(grid);
+        for (auto& conn_set : connections)
+            conn_set->filter(grid);
     }
 }

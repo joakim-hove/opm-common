@@ -95,7 +95,7 @@ namespace Opm {
         void addWELSPECS(const DeckRecord& deckRecord);
 
         void addConnections(size_t time_step, const std::vector< Connection >& );
-        void addConnectionSet(size_t time_step, ConnectionSet );
+        void addConnectionSet(size_t time_step, std::shared_ptr<ConnectionSet> );
         const ConnectionSet& getConnections(size_t timeStep) const;
         const ConnectionSet& getConnections() const;
         ConnectionSet getActiveConnections(size_t timeStep, const EclipseGrid& grid) const;
@@ -183,7 +183,7 @@ namespace Opm {
         DynamicState< double > m_efficiencyFactors;
 
         DynamicState< int > m_isProducer;
-        DynamicState< ConnectionSet > connections;
+        DynamicState< std::shared_ptr<ConnectionSet>> connections;
         DynamicState< WellProductionProperties > m_productionProperties;
         DynamicState< WellInjectionProperties > m_injectionProperties;
         DynamicState< WellPolymerProperties > m_polymerProperties;

@@ -561,7 +561,7 @@ namespace Opm {
             for( auto* well : getWells( wellNamePattern ) ) {
                 const auto& currentConnectionSet = well->getConnections(currentStep);
 
-                ConnectionSet newConnectionSet;
+                std::shared_ptr<ConnectionSet> newConnectionSet = std::make_shared<ConnectionSet>();
 
                 Opm::Value<int> I  = getValueItem(record.getItem("I"));
                 Opm::Value<int> J  = getValueItem(record.getItem("J"));
@@ -576,13 +576,13 @@ namespace Opm {
 
                     if (FIRST.hasValue()) {
                         if (i < (size_t) FIRST.getValue()) {
-                            newConnectionSet.add(currentConnection);
+                            newConnectionSet->add(currentConnection);
                             continue;
                         }
                     }
                     if (LAST.hasValue()) {
                         if (i > (size_t) LAST.getValue()) {
-                            newConnectionSet.add(currentConnection);
+                            newConnectionSet->add(currentConnection);
                             continue;
                         }
                     }
@@ -592,21 +592,21 @@ namespace Opm {
                     int ck = currentConnection.getK();
 
                     if (I.hasValue() && (!(I.getValue() == ci) )) {
-                        newConnectionSet.add(currentConnection);
+                        newConnectionSet->add(currentConnection);
                         continue;
                     }
 
                     if (J.hasValue() && (!(J.getValue() == cj) )) {
-                        newConnectionSet.add(currentConnection);
+                        newConnectionSet->add(currentConnection);
                         continue;
                     }
 
                     if (K.hasValue() && (!(K.getValue() == ck) )) {
-                        newConnectionSet.add(currentConnection);
+                        newConnectionSet->add(currentConnection);
                         continue;
                     }
 
-                    newConnectionSet.add( Connection{ currentConnection, wellPi } );
+                    newConnectionSet->add( Connection{ currentConnection, wellPi } );
                 }
 
                 well->addConnectionSet(currentStep, newConnectionSet);
@@ -945,9 +945,9 @@ namespace Opm {
             };
 
             for( auto& well : this->getWells( wellname ) ) {
-                ConnectionSet new_completions;
+                std::shared_ptr<ConnectionSet> new_completions = std::make_shared<ConnectionSet>();
                 for( const auto& completion : well->getConnections( timestep ) )
-                    new_completions.add( new_completion( completion ) );
+                    new_completions->add( new_completion( completion ) );
 
                 well->addConnectionSet( timestep, new_completions );
             }
@@ -1032,9 +1032,9 @@ namespace Opm {
             };
 
             for( auto* well : wells ) {
-                ConnectionSet new_completions;
+                std::shared_ptr<ConnectionSet> new_completions=std::make_shared<ConnectionSet>();
                 for( const auto& c : well->getConnections( currentStep ) )
-                    new_completions.add( new_completion( c ) );
+                    new_completions->add( new_completion( c ) );
 
                 well->addConnectionSet( currentStep, new_completions );
                 m_events.addEvent( ScheduleEvents::COMPLETION_CHANGE, currentStep );
@@ -1452,9 +1452,9 @@ namespace Opm {
 
         const auto& segment_set = well.getSegmentSet(currentStep);
         const auto& completion_set = well.getConnections( currentStep );
-        const ConnectionSet new_completion_set = updatingConnectionsWithSegments(keyword, completion_set, segment_set);
+        std::shared_ptr<ConnectionSet> new_connection_set = std::shared_ptr<ConnectionSet>(newConnectionsWithSegments(keyword, completion_set, segment_set));
 
-        well.addConnectionSet(currentStep, new_completion_set);
+        well.addConnectionSet(currentStep, new_connection_set);
     }
 
     void Schedule::handleWGRUPCON( const DeckKeyword& keyword, size_t currentStep) {

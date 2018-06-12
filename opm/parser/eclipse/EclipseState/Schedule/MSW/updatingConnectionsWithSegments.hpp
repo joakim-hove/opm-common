@@ -26,7 +26,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/MSW/SegmentSet.hpp>
 
 namespace Opm {
-    ConnectionSet updatingConnectionsWithSegments(const DeckKeyword& compsegs, const ConnectionSet& input_connections, const SegmentSet& segments);
+    ConnectionSet * newConnectionsWithSegments(const DeckKeyword& compsegs, const ConnectionSet& input_connections, const SegmentSet& segments);
 }
 
 #endif
