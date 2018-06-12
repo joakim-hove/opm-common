@@ -33,7 +33,7 @@
 #include <opm/parser/eclipse/EclipseState/EclipseState.hpp>
 #include <opm/parser/eclipse/EclipseState/Grid/EclipseGrid.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Connection.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/ConnectionSet.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/WellConnections.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Schedule.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/ScheduleEnums.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well.hpp>
@@ -395,16 +395,16 @@ BOOST_AUTO_TEST_CASE(CompletionOrder) {
         auto c2 = connection(5, 5, 9);
         auto c3 = connection(5, 5, 1);
         auto c4 = connection(5, 5, 0);
-        std::shared_ptr<Opm::ConnectionSet> cv1 = std::make_shared<Opm::ConnectionSet>();
+        std::shared_ptr<Opm::WellConnections> cv1 = std::make_shared<Opm::WellConnections>();
         cv1->add(c1);
         cv1->add(c2);
-        well.addConnectionSet(1, cv1);
+        well.addWellConnections(1, cv1);
         BOOST_CHECK_EQUAL(well.getConnections(1).get(0), c1);
 
-        std::shared_ptr<Opm::ConnectionSet> cv2 = std::make_shared<Opm::ConnectionSet>();
+        std::shared_ptr<Opm::WellConnections> cv2 = std::make_shared<Opm::WellConnections>();
         cv2->add(c3);
         cv2->add(c4);
-        well.addConnectionSet(2, cv2);
+        well.addWellConnections(2, cv2);
         BOOST_CHECK_EQUAL(well.getConnections(1).get(0), c1);
         BOOST_CHECK_EQUAL(well.getConnections(2).get(0), c4);
     }
