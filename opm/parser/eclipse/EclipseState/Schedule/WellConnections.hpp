@@ -41,8 +41,11 @@ namespace Opm {
                            const Value<double>& skinFactor,
                            const int satTableId,
                            const WellCompletion::DirectionEnum direction = WellCompletion::DirectionEnum::Z);
-
+        void loadCOMPDAT();
+        void addConnection(const Connection& old, int segment, double depth);
         void addConnection(const Connection& old, int new_complump);
+        void add( Connection );
+
         size_t size() const;
         const Connection& get(size_t index) const;
         const Connection& getFromIJK(const int i, const int j, const int k) const;
@@ -69,7 +72,16 @@ namespace Opm {
         bool operator!=( const WellConnections& ) const;
 
     private:
-        void add( Connection );
+        void addConnection(int i, int j , int k ,
+                           int complnum,
+                           double depth,
+                           WellCompletion::StateEnum state ,
+                           const Value<double>& connectionTransmissibilityFactor,
+                           const Value<double>& diameter,
+                           const Value<double>& skinFactor,
+                           const int satTableId,
+                           const WellCompletion::DirectionEnum direction = WellCompletion::DirectionEnum::Z);
+
         std::vector< Connection > m_connections;
         size_t findClosestConnection(int oi, int oj, double oz, size_t start_pos);
         int headI, headJ;

@@ -36,18 +36,71 @@ namespace Opm {
     }
 
     void WellConnections::addConnection(int i, int j , int k ,
+                                        int complnum,
                                         double depth,
                                         WellCompletion::StateEnum state ,
                                         const Value<double>& connectionTransmissibilityFactor,
                                         const Value<double>& diameter,
                                         const Value<double>& skinFactor,
                                         const int satTableId,
-                                        const WellCompletion::DirectionEnum direction) {
-
+                                        const WellCompletion::DirectionEnum direction)
+    {
+        int conn_i = (i < 0) ? this->headI : i;
+        int conn_j = (j < 0) ? this->headJ : j;
+        Connection conn(conn_i, conn_j, k, complnum, depth, state, connectionTransmissibilityFactor, diameter, skinFactor, satTableId, direction);
+        this->add(conn);
     }
 
-    void WellConnections::addConnection(const Connection& old, int new_complump) {
 
+    void WellConnections::addConnection(int i, int j , int k ,
+                                        double depth,
+                                        WellCompletion::StateEnum state ,
+                                        const Value<double>& connectionTransmissibilityFactor,
+                                        const Value<double>& diameter,
+                                        const Value<double>& skinFactor,
+                                        const int satTableId,
+                                        const WellCompletion::DirectionEnum direction)
+    {
+        int complnum = -(this->m_connections.size() + 1);
+        this->addConnection(i,
+                            j,
+                            k,
+                            complnum,
+                            depth,
+                            state,
+                            connectionTransmissibilityFactor,
+                            diameter,
+                            skinFactor,
+                            satTableId,
+                            direction);
+    }
+
+
+    void WellConnections::addConnection(const Connection& old, int new_complump) {
+        this->add( Connection(old,new_complump) );
+    }
+
+    void WellConnections::addConnection(const Connection& old, int segment, double depth) {
+        this->add( Connection(old, segment, depth) );
+    }
+
+
+
+    void WellConnections::add( Connection connection ) {
+        auto same = [&]( const Connection& c ) {
+            return c.sameCoordinate( connection );
+        };
+
+        auto prev = std::find_if( this->m_connections.begin(),
+                                  this->m_connections.end(),
+                                  same );
+
+        if( prev != this->m_connections.end() ) {
+            *prev = connection;
+            return;
+        }
+
+        m_connections.emplace_back( connection );
     }
 
 
@@ -75,24 +128,6 @@ namespace Opm {
         throw std::runtime_error(" the connection is not found! \n ");
     }
 
-
-    void WellConnections::add( Connection connection ) {
-        auto same = [&]( const Connection& c ) {
-            return c.sameCoordinate( connection );
-        };
-
-        auto prev = std::find_if( this->m_connections.begin(),
-                                  this->m_connections.end(),
-                                  same );
-
-        if( prev != this->m_connections.end() ) {
-            // update the completion, but preserve it's number
-            *prev = Connection( connection, prev->complnum() );
-            return;
-        }
-
-        m_connections.emplace_back( connection );
-    }
 
     bool WellConnections::allConnectionsShut( ) const {
         auto shut = []( const Connection& c ) {
