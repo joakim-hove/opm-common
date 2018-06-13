@@ -386,6 +386,8 @@ namespace Opm {
         this->addWellConnections( time_step, new_set );
     }
 
+
+    //PRIVATE?
     void Well::addWellConnections(size_t time_step, std::shared_ptr<WellConnections> new_set ){
         if( getWellConnectionOrdering() == WellCompletion::TRACK) {
             const auto headI = this->m_headI[ time_step ];
@@ -395,6 +397,13 @@ namespace Opm {
 
         connections.update( time_step, new_set );
         addEvent( ScheduleEvents::COMPLETION_CHANGE , time_step );
+    }
+
+
+    void Well::loadCOMPDAT(size_t time_step, const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties) {
+        std::shared_ptr<WellConnections> connections = std::make_shared<WellConnections>(this->getConnections(time_step));
+        connections->loadCOMPDAT(record, grid, eclipseProperties);
+        this->addWellConnections(time_step, connections);
     }
 
     const std::string Well::getGroupName(size_t time_step) const {

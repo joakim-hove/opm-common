@@ -25,6 +25,7 @@
 
 namespace Opm {
     class EclipseGrid;
+    class Eclipse3DProperties;
 
     class WellConnections {
     public:
@@ -41,7 +42,7 @@ namespace Opm {
                            const Value<double>& skinFactor,
                            const int satTableId,
                            const WellCompletion::DirectionEnum direction = WellCompletion::DirectionEnum::Z);
-        void loadCOMPDAT();
+        void loadCOMPDAT(const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties);
         void addConnection(const Connection& old, int segment, double depth);
         void addConnection(const Connection& old, int new_complump);
         void add( Connection );

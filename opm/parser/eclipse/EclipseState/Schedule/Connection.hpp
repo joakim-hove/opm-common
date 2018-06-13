@@ -34,10 +34,6 @@ namespace Opm {
 
     class DeckKeyword;
     class DeckRecord;
-    class Well;
-    class EclipseGrid;
-    class Eclipse3DProperties;
-    class Schedule;
 
     class Connection {
     public:
@@ -77,14 +73,6 @@ namespace Opm {
         bool attachedToSegment() const;
 
         WellCompletion::DirectionEnum getDirection() const;
-
-        static std::map< std::string, std::vector< Connection > >
-        fromCOMPDAT( const EclipseGrid& grid,
-                     const Eclipse3DProperties& eclipseProperties,
-                     const DeckKeyword& compdatKeyword,
-                     const std::vector< const Well* >&,
-                     const ParseContext&,
-                     const Schedule&);
 
         bool operator==( const Connection& ) const;
         bool operator!=( const Connection& ) const;

@@ -93,6 +93,7 @@ namespace Opm {
         bool isProducer(size_t timeStep) const;
         bool isInjector(size_t timeStep) const;
         void addWELSPECS(const DeckRecord& deckRecord);
+        void loadCOMPDAT(size_t time_step, const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties);
 
         void addConnections(size_t time_step, const std::vector< Connection >& );
         void addWellConnections(size_t time_step, std::shared_ptr<WellConnections> );
