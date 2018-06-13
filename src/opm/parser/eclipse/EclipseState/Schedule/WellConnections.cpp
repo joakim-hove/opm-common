@@ -155,6 +155,9 @@ namespace Opm {
                                   this->m_connections.end(),
                                   same );
 
+        if (connection.complnum() == 0)
+            throw std::invalid_argument("Trying to connection with not initialized complump number - internal error");
+
         if( prev != this->m_connections.end() ) {
             *prev = connection;
             return;

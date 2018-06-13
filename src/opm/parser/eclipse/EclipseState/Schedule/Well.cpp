@@ -383,12 +383,11 @@ namespace Opm {
             else ++prev_size;
         }
 
-        this->addWellConnections( time_step, new_set );
+        this->updateWellConnections( time_step, new_set );
     }
 
 
-    //PRIVATE?
-    void Well::addWellConnections(size_t time_step, std::shared_ptr<WellConnections> new_set ){
+    void Well::updateWellConnections(size_t time_step, std::shared_ptr<WellConnections> new_set ){
         if( getWellConnectionOrdering() == WellCompletion::TRACK) {
             const auto headI = this->m_headI[ time_step ];
             const auto headJ = this->m_headJ[ time_step ];
@@ -399,11 +398,131 @@ namespace Opm {
         addEvent( ScheduleEvents::COMPLETION_CHANGE , time_step );
     }
 
+    namespace {
 
-    void Well::loadCOMPDAT(size_t time_step, const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties) {
+        bool defaulted( int x ) { return x < 0; }
+
+        int maybe( const DeckRecord& rec, const std::string& s ) {
+            const auto& item = rec.getItem( s );
+            return item.defaultApplied( 0 ) ? -1 : item.get< int >( 0 ) - 1;
+        }
+
+        bool match_le(int value, int limit) {
+            if (defaulted(limit))
+                return true;
+
+            return value <= limit;
+        }
+
+        bool match_ge(int value, int limit) {
+            if (defaulted(limit))
+                return true;
+
+            return value >= limit;
+        }
+
+        bool match_eq(int value, int limit) {
+            if (defaulted(limit))
+                return true;
+
+            return (limit == value);
+        }
+    }
+
+
+    void Well::handleCOMPLUMP(const DeckRecord& record, size_t time_step)  {
+        const int I  = maybe( record, "I" );
+        const int J  = maybe( record, "J" );
+        const int K1 = maybe( record, "K1" );
+        const int K2 = maybe( record, "K2" );
+
+        auto match = [=]( const Connection& c ) -> bool {
+            if (!match_eq(c.getI(), I))  return false;
+            if (!match_eq(c.getI(), I))  return false;
+            if (!match_le(c.getK(), K1)) return false;
+            if (!match_ge(c.getK(), K2)) return false;
+
+            return true;
+        };
+
+        std::shared_ptr<WellConnections> new_connections = std::make_shared<WellConnections>(this->headI, this->headJ);
+        const int complnum = record.getItem("N").get<int>(0);
+        for (const auto& c : this->getConnections(time_step)) {
+            if (match(c))
+                new_connections->add(Connection(c,complnum));
+            else
+                new_connections->add(c);
+        }
+        this->updateWellConnections(time_step, new_connections);
+    }
+
+
+    void Well::handleWPIMULT(const DeckRecord& record, size_t time_step) {
+        const int I  = maybe(record, "I");
+        const int J  = maybe(record, "J");
+        const int K  = maybe(record, "K");
+        const int C1 = maybe(record, "FIRST");
+        const int C2 = maybe(record, "LAST");
+
+        auto match = [=]( const Connection &c) -> bool {
+            if (!match_le(c.complnum(), C1)) return false;
+            if (!match_ge(c.complnum(), C2)) return false;
+            if (!match_eq(c.getI(), I))      return false;
+            if (!match_eq(c.getI(), I))      return false;
+            if (!match_eq(c.getK(), K))      return false;
+
+            return true;
+        }
+
+        std::shared_ptr<WellConnections> new_connections = std::make_shared<WellConnections>(this->headI, this->headJ);
+        double wellPi = record.getItem("WELLPI").get< double >(0);
+
+        for (const auto& c : this->getConnections(time_step)) {
+            if (match(c))
+                new_connections->add(Connection(c,wellPi));
+            else
+                new_connections->add(c);
+        }
+
+        this->updateWellConnections(time_step, new_connections);
+    }
+
+
+    void Well::handleWELOPEN(const DeckRecord& record, size_t time_step, WellCompletion::StateEnum status) {
+        const int I  = maybe(record, "I");
+        const int J  = maybe(record, "J");
+        const int K  = maybe(record, "K");
+        const int C1 = maybe(record, "C1");
+        const int C2 = maybe(record, "C2");
+
+        auto match = [=]( const Connection &c) -> bool {
+            if (!match_le(c.complnum(), C1)) return false;
+            if (!match_ge(c.complnum(), C2)) return false;
+            if (!match_eq(c.getI(), I))      return false;
+            if (!match_eq(c.getI(), I))      return false;
+            if (!match_eq(c.getK(), K))      return false;
+
+            return true;
+        }
+
+        std::shared_ptr<WellConnections> new_connections = std::make_shared<WellConnections>(this->headI, this->headJ);
+
+        for (const auto& c : this->getConnections(time_step)) {
+            if (match(c))
+                new_connections->add(Connection(c,status));
+            else
+                new_connections->add(c);
+        }
+
+        this->updateWellConnections(time_step, new_connections);
+    }
+
+
+
+    void Well::handleCOMPDAT(size_t time_step, const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties) {
         std::shared_ptr<WellConnections> connections = std::make_shared<WellConnections>(this->getConnections(time_step));
         connections->loadCOMPDAT(record, grid, eclipseProperties);
-        this->addWellConnections(time_step, connections);
+        this->updateWellConnections(time_step, connections);
     }
 
     const std::string Well::getGroupName(size_t time_step) const {

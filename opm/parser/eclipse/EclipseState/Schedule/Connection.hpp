@@ -79,7 +79,7 @@ namespace Opm {
 
     private:
         int m_i, m_j, m_k;
-        int m_complnum;
+        int m_complnum = 0;
         Value<double> m_diameter;
         Value<double> m_connectionTransmissibilityFactor;
         double m_wellPi;
