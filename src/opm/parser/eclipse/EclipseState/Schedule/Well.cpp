@@ -28,6 +28,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/MSW/SegmentSet.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/TimeMap.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/MSW/updatingConnectionsWithSegments.hpp>
 
 #include <ert/ecl/ecl_grid.h>
 
@@ -360,7 +361,7 @@ namespace Opm {
     }
 
     void Well::addConnections(size_t time_step, const std::vector< Connection >& newConnections ) {
-        std::shared_ptr<WellConnections> new_set = std::make_shared<WellConnections>( this->getConnections(time_step) );
+        WellConnections * new_set = new WellConnections(this->getConnections(time_step));
         int complnum_shift = new_set->size();
 
         const auto headI = this->m_headI[ time_step ];
@@ -387,14 +388,18 @@ namespace Opm {
     }
 
 
-    void Well::updateWellConnections(size_t time_step, std::shared_ptr<WellConnections> new_set ){
+    WellConnections * Well::newWellConnections(size_t time_step) {
+        return new WellConnections( this->m_headI[time_step], this->m_headJ[time_step]);
+    }
+
+    void Well::updateWellConnections(size_t time_step, WellConnections * new_set ){
         if( getWellConnectionOrdering() == WellCompletion::TRACK) {
             const auto headI = this->m_headI[ time_step ];
             const auto headJ = this->m_headJ[ time_step ];
             new_set->orderConnections( headI, headJ );
         }
 
-        connections.update( time_step, new_set );
+        connections.update( time_step, std::shared_ptr<WellConnections>( new_set ));
         addEvent( ScheduleEvents::COMPLETION_CHANGE , time_step );
     }
 
@@ -429,6 +434,12 @@ namespace Opm {
         }
     }
 
+    void Well::handleCOMPSEGS(const DeckKeyword& keyword, size_t time_step) {
+        const auto& segment_set = this->getSegmentSet(time_step);
+        const auto& completion_set = this->getConnections( time_step );
+        WellConnections * new_connection_set = newConnectionsWithSegments(keyword, completion_set, segment_set);
+        this->updateWellConnections(time_step, new_connection_set);
+    }
 
     void Well::handleCOMPLUMP(const DeckRecord& record, size_t time_step)  {
         const int I  = maybe( record, "I" );
@@ -438,14 +449,14 @@ namespace Opm {
 
         auto match = [=]( const Connection& c ) -> bool {
             if (!match_eq(c.getI(), I))  return false;
-            if (!match_eq(c.getI(), I))  return false;
+            if (!match_eq(c.getJ(), J))  return false;
             if (!match_le(c.getK(), K1)) return false;
             if (!match_ge(c.getK(), K2)) return false;
 
             return true;
         };
 
-        std::shared_ptr<WellConnections> new_connections = std::make_shared<WellConnections>(this->headI, this->headJ);
+        WellConnections * new_connections = this->newWellConnections(time_step);
         const int complnum = record.getItem("N").get<int>(0);
         for (const auto& c : this->getConnections(time_step)) {
             if (match(c))
@@ -468,13 +479,13 @@ namespace Opm {
             if (!match_le(c.complnum(), C1)) return false;
             if (!match_ge(c.complnum(), C2)) return false;
             if (!match_eq(c.getI(), I))      return false;
-            if (!match_eq(c.getI(), I))      return false;
+            if (!match_eq(c.getJ(), J))      return false;
             if (!match_eq(c.getK(), K))      return false;
 
             return true;
-        }
+        };
 
-        std::shared_ptr<WellConnections> new_connections = std::make_shared<WellConnections>(this->headI, this->headJ);
+        WellConnections * new_connections = this->newWellConnections(time_step);
         double wellPi = record.getItem("WELLPI").get< double >(0);
 
         for (const auto& c : this->getConnections(time_step)) {
@@ -499,13 +510,13 @@ namespace Opm {
             if (!match_le(c.complnum(), C1)) return false;
             if (!match_ge(c.complnum(), C2)) return false;
             if (!match_eq(c.getI(), I))      return false;
-            if (!match_eq(c.getI(), I))      return false;
+            if (!match_eq(c.getJ(), J))      return false;
             if (!match_eq(c.getK(), K))      return false;
 
             return true;
-        }
+        };
 
-        std::shared_ptr<WellConnections> new_connections = std::make_shared<WellConnections>(this->headI, this->headJ);
+        WellConnections * new_connections = this->newWellConnections(time_step);
 
         for (const auto& c : this->getConnections(time_step)) {
             if (match(c))
@@ -520,7 +531,7 @@ namespace Opm {
 
 
     void Well::handleCOMPDAT(size_t time_step, const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties) {
-        std::shared_ptr<WellConnections> connections = std::make_shared<WellConnections>(this->getConnections(time_step));
+        WellConnections * connections = new WellConnections(this->getConnections(time_step));
         connections->loadCOMPDAT(record, grid, eclipseProperties);
         this->updateWellConnections(time_step, connections);
     }

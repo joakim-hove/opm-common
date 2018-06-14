@@ -93,6 +93,7 @@ namespace Opm {
         bool isProducer(size_t timeStep) const;
         bool isInjector(size_t timeStep) const;
         void addWELSPECS(const DeckRecord& deckRecord);
+        void handleCOMPSEGS(const DeckKeyword& keyword, size_t time_step);
         void handleCOMPDAT(size_t time_step, const DeckRecord& record, const EclipseGrid& grid, const Eclipse3DProperties& eclipseProperties);
         void handleCOMPLUMP(const DeckRecord& record, size_t time_step);
         void handleWPIMULT(const DeckRecord& record, size_t time_step);
@@ -210,7 +211,8 @@ namespace Opm {
         size_t timesteps;
         Events events;
 
-        void updateWellConnections(size_t time_step, std::shared_ptr<WellConnections> );
+        void updateWellConnections(size_t time_step, WellConnections * );
+        WellConnections * newWellConnections(size_t time_step);
     };
 }
 

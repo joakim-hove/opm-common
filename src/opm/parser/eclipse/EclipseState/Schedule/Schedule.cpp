@@ -1323,13 +1323,10 @@ namespace Opm {
         const auto& record1 = keyword.getRecord(0);
         const std::string& well_name = record1.getItem("WELL").getTrimmedString(0);
         auto& well = this->m_wells.get( well_name );
-
-        const auto& segment_set = well.getSegmentSet(currentStep);
-        const auto& completion_set = well.getConnections( currentStep );
-        std::shared_ptr<WellConnections> new_connection_set = std::shared_ptr<WellConnections>(newConnectionsWithSegments(keyword, completion_set, segment_set));
-
-        well.updateWellConnections(currentStep, new_connection_set);
+        well.handleCOMPSEGS(keyword, currentStep);
     }
+
+
 
     void Schedule::handleWGRUPCON( const DeckKeyword& keyword, size_t currentStep) {
         for( const auto& record : keyword ) {

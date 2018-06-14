@@ -395,16 +395,12 @@ BOOST_AUTO_TEST_CASE(CompletionOrder) {
         auto c2 = connection(5, 5, 9);
         auto c3 = connection(5, 5, 1);
         auto c4 = connection(5, 5, 0);
-        std::shared_ptr<Opm::WellConnections> cv1 = std::make_shared<Opm::WellConnections>(10,10);
-        cv1->add(c1);
-        cv1->add(c2);
-        well.addWellConnections(1, cv1);
+        std::vector<Connection> cv1 = {c1,c2};
+        well.addConnections(1, cv1);
         BOOST_CHECK_EQUAL(well.getConnections(1).get(0), c1);
 
-        std::shared_ptr<Opm::WellConnections> cv2 = std::make_shared<Opm::WellConnections>(1,2);
-        cv2->add(c3);
-        cv2->add(c4);
-        well.addWellConnections(2, cv2);
+        std::vector<Connection> cv2 = {c3,c4};
+        well.addConnections(2, cv2);
         BOOST_CHECK_EQUAL(well.getConnections(1).get(0), c1);
         BOOST_CHECK_EQUAL(well.getConnections(2).get(0), c4);
     }
