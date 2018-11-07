@@ -506,11 +506,11 @@ namespace {
                     sWell[Ix::ResVRateTarget] =
                         swprop(M::rate, pp.ResVRate);
                 }
-		else if (smry.has("WVPR:" + well.name())) {
+                else if (smry.has("WVPR", well.name())) {
                     // Write out summary voidage production rate if
                     // target/limit is not set
                     sWell[Ix::ResVRateTarget] =
-                        static_cast<float>(smry.get("WVPR:" + well.name()));
+                        static_cast<float>(smry.get("WVPR",well.name()));
                 }
 
                 if (pp.THPLimit != 0.0) {
@@ -604,9 +604,7 @@ namespace {
 
             auto get = [&smry, &well](const std::string& vector)
             {
-                const auto key = vector + ':' + well;
-
-                return smry.has(key) ? smry.get(key) : 0.0;
+                return smry.has(vector,well) ? smry.get(vector,well) : 0.0;
             };
 
             xWell[Ix::OilPrRate] = get("WOPR");
@@ -643,9 +641,7 @@ namespace {
 
             auto get = [&smry, &well](const std::string& vector)
             {
-                const auto key = vector + ':' + well;
-
-                return smry.has(key) ? smry.get(key) : 0.0;
+                return smry.has(vector,well) ? smry.get(vector,well) : 0.0;
             };
 
             // Injection rates reported as negative, cumulative
@@ -675,9 +671,7 @@ namespace {
 
             auto get = [&smry, &well](const std::string& vector)
             {
-                const auto key = vector + ':' + well;
-
-                return smry.has(key) ? smry.get(key) : 0.0;
+                return smry.has(vector,well) ? smry.get(vector,well) : 0.0;
             };
 
             // Injection rates reported as negative production rates,

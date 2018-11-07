@@ -36,14 +36,26 @@ class SummaryState {
 public:
     typedef std::unordered_map<std::string, double>::const_iterator const_iterator;
 
-    void add(const std::string& key, double value);
-    double get(const std::string&) const;
-    bool has(const std::string& key) const;
+
+    void   add(const std::string& keyword, const std::string& wgname, double value);
+    double get(const std::string& keyword, const std::string& wgname) const;
+    bool   has(const std::string& keyword, const std::string& wgname) const;
+
+    void   add(const std::string& keyword, int num, double value);
+    double get(const std::string& keyword, int num) const;
+    bool   has(const std::string& keyword, int num) const;
+
+    void   add(const std::string& keyword, const std::string& wgname, int num, double value);
+    double get(const std::string& keyword, const std::string& wgname, int num) const;
+    bool   has(const std::string& keyword, const std::string& wgname, int num) const;
 
     const_iterator begin() const;
     const_iterator end() const;
 private:
     std::unordered_map<std::string,double> values;
+    void   add(const std::string& keyword, double value);
+    double get(const std::string& keyword) const;
+    bool   has(const std::string& keyword) const;
 };
 
 }

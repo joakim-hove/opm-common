@@ -390,10 +390,8 @@ namespace {
                            RSegArray&                 rSeg)
         {
 	    if (well.isMultiSegment(rptStep)) {
+    // 'segNumber' is one-based (1 .. #segments inclusive)
 		int segNumber = 1;
-
-		// 'stringSegNum' is one-based (1 .. #segments inclusive)
-		std::string stringSegNum = std::to_string(segNumber);
 
 		using M = ::Opm::UnitSystem::measure;
 		const auto gfactor = (units.getType() == Opm::UnitSystem::UnitType::UNIT_TYPE_FIELD)
@@ -405,11 +403,9 @@ namespace {
 		const auto& wname     = well.name();
 		// const auto completionSet = well.getCompletions(rptStep);
 
-		auto get = [&smry, &wname, &stringSegNum](const std::string& vector)
+		auto get = [&smry, &wname](const std::string& vector, int segment_number)
 		{
-		    // 'stringSegNum' is one-based (1 .. #segments inclusive)
-		    const auto key = vector + ':' + wname + ':' + stringSegNum;
-		    return smry.has(key) ? smry.get(key) : 0.0;
+        return smry.has(vector,wname,segment_number) ? smry.get(vector,wname,segment_number) : 0.0;
 		};
 
 		// Treat the top segment individually
@@ -431,16 +427,16 @@ namespace {
 
 		// Note: Segment flow rates and pressure from 'smry' have correct
 		// output units and sign conventions.
-		auto temp_o = get("SOFR");
-		auto temp_w = get("SWFR")*0.1;
-		auto temp_g = get("SGFR")*gfactor;
+		auto temp_o = get("SOFR", segNumber);
+		auto temp_w = get("SWFR", segNumber)*0.1;
+		auto temp_g = get("SGFR", segNumber)*gfactor;
 
 		rSeg[ 8] = temp_o + temp_w + temp_g;
 		rSeg[ 9] = (std::abs(temp_w) > 0) ? temp_w / rSeg[8] : 0.;
 		rSeg[10] = (std::abs(temp_g) > 0) ? temp_g / rSeg[8] : 0.;
 
 		//Item 12 Segment pressure
-		rSeg[11] = get("SPR");
+		rSeg[11] = get("SPR", segNumber);
 		//  segment pressure  
 		rSeg[ 39] = rSeg[11];
 
@@ -453,8 +449,6 @@ namespace {
 
 		//Treat subsequent segments
 		for (segNumber = 2; segNumber <= welSegSet.size(); segNumber++) {
-		    // 'stringSegNum' is one-based (1 .. #segments inclusive)
-		    stringSegNum = std::to_string(segNumber);
 
 		    // set the elements of the rSeg array
 		    auto ind = welSegSet.segmentNumberToIndex(segNumber);
@@ -473,16 +467,16 @@ namespace {
 		    rSeg[iS +   7] = units.from_si(M::length, (welSegSet[ind].depth()));
 
 		    //see section above for explanation of values
-		    temp_o = get("SOFR");
-		    temp_w = get("SWFR")*0.1;
-		    temp_g = get("SGFR")*gfactor;
+		    temp_o = get("SOFR", segNumber);
+		    temp_w = get("SWFR", segNumber)*0.1;
+		    temp_g = get("SGFR", segNumber)*gfactor;
 
 		    rSeg[iS +  8] = temp_o + temp_w + temp_g;
 		    rSeg[iS +  9] = (std::abs(temp_w) > 0) ? temp_w / rSeg[iS + 8] : 0.;
 		    rSeg[iS + 10] = (std::abs(temp_g) > 0) ? temp_g / rSeg[iS + 8] : 0.;
 
 		    //Item 12 Segment pressure
-		    rSeg[iS +  11] = get("SPR");
+		    rSeg[iS +  11] = get("SPR", segNumber);
 		    rSeg[iS +  39] = rSeg[iS +  11];
 
 		    rSeg[iS + 105] = 1.0;
