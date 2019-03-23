@@ -1749,7 +1749,6 @@ namespace Opm {
                 {
                     auto * well = std::addressof(this->m_wells.at(name));
                     well->handleCOMPDAT(currentStep, record, grid, eclipseProperties);
-
                     if (well->getConnections( currentStep ).allConnectionsShut()) {
                         std::string msg =
                             "All completions in well " + well->name() + " is shut at " + std::to_string ( m_timeMap.getTimePassedUntil(currentStep) / (60*60*24) ) + " days. \n" +
@@ -2710,7 +2709,6 @@ namespace Opm {
                 auto last_step = this->size() - 1;
                 const auto& well2 = *(dynamic_state[last_step]);
                 bool equal = true;
-
 
                 if (well2.getWellConnectionOrdering() != well.getWellConnectionOrdering())
                     equal = false;
