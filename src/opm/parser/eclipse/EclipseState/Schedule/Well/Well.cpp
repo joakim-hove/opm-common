@@ -273,6 +273,7 @@ namespace Opm {
     }
 
     void Well::setGuideRatePhase(size_t timeStep, GuideRate::GuideRatePhaseEnum phase) {
+        printf("setting phase to: %d at %ld \n", phase, timeStep);
         m_guideRatePhase.update(timeStep, phase);
     }
 
@@ -477,7 +478,10 @@ namespace Opm {
             const auto headJ = this->m_headJ[ time_step ];
             new_set->orderConnections( headI, headJ );
         }
-
+        //This breaks test at line 824 in ScheduleTests
+        /*if (new_set->allConnectionsShut())
+            this->setStatus(time_step, WellCommon::SHUT );
+        */
         m_completions.update( time_step, std::shared_ptr<WellConnections>( new_set ));
     }
 
