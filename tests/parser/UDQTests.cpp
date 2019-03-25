@@ -954,3 +954,9 @@ BOOST_AUTO_TEST_CASE(UDQPARSE_PARSECONTEXT) {
     parseContext.update(ParseContext::UDQ_PARSE_ERROR, InputError::THROW_EXCEPTION);
     BOOST_CHECK_THROW( UDQDefine(udqp, "WUBHP", tokens, parseContext, errors), std::invalid_argument);
 }
+
+
+
+BOOST_AUTO_TEST_CASE(UDA) {
+    UDA uda;
+}

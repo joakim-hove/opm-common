@@ -1,5 +1,5 @@
 /*
-  Copyright 2018 Statoil ASA.
+  Copyright 2019 Equinor ASA
 
   This file is part of the Open Porous Media project (OPM).
 
@@ -18,28 +18,16 @@
 */
 
 
-#ifndef UDQINPUT_HPP_
-#define UDQINPUT_HPP_
+#ifndef UDA_HPP
+#define UDA_HPP
 
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-
-#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQDefine.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQAssign.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQEnums.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQParams.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQFunctionTable.hpp>
-
+#include <opm/parser/eclipse/Deck/DeckItem.hpp>
 
 namespace Opm {
 
-    class DeckRecord;
-    class Deck;
-
-    class UDQInput {
+    class UDA {
     public:
-        explicit UDQInput(const Deck& deck);
+      explicit UDQInput(const DeckItem& item);
         const std::string& unit(const std::string& key) const;
         bool has_unit(const std::string& keyword) const;
         bool has_keyword(const std::string& keyword) const;
