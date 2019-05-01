@@ -407,6 +407,13 @@ namespace Opm {
         }
 
         checkUnhandledKeywords(section);
+        {
+            auto& updated_tree = m_rootGroupTree.get(currentStep);
+            std::cout << "currentStep " << currentStep << std::endl;
+            std::cout << "After iterate: " << std::endl << updated_tree;
+            auto& gt = this->getGroupTree(currentStep);
+            std::cout << "After iterate(public): " << std::endl << updated_tree;
+        }
     }
 
 
@@ -577,10 +584,15 @@ namespace Opm {
             if (handleGroupFromWELSPECS(groupName, newTree))
                 needNewTree = true;
         }
+        printf("%s  newNewTree: %d \n", __func__, needNewTree);
+        std::cout << newTree;
 
         if (needNewTree) {
             m_rootGroupTree.update(currentStep, newTree);
             m_events.addEvent( ScheduleEvents::GROUP_CHANGE , currentStep);
+            auto& updated_tree = m_rootGroupTree.get(currentStep);
+            printf("After WELSPECS \n");
+            std::cout << updated_tree;
         }
     }
 
@@ -1721,6 +1733,11 @@ namespace Opm {
     }
 
     const GroupTree& Schedule::getGroupTree(size_t timeStep) const {
+        printf("Calling getGroupTree(%ld)\n", timeStep);
+        {
+            const auto& gt = m_rootGroupTree.get(timeStep);
+            std::cout << gt;
+        }
         return m_rootGroupTree.get(timeStep);
     }
 
