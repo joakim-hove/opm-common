@@ -72,6 +72,10 @@ void verifyWellState(const std::string& rst_filename,
     }
 
     for (int j = 0; j < well_ts_get_size(well_ts); ++j) {
+      const auto& well_at_end = schedule.getWell2atEnd(wellname);
+      if (!well_at_end.hasBeenDefined(j))
+        continue;
+
       const auto& well = schedule.getWell2(wellname, j);
       well_state = well_ts_iget_state(well_ts, j);
 

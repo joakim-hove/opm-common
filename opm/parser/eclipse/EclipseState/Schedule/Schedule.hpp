@@ -114,6 +114,7 @@ namespace Opm
         size_t numWells() const;
         size_t numWells(size_t timestep) const;
         bool hasWell(const std::string& wellName) const;
+        bool hasWell(const std::string& wellName, std::size_t timeStep) const;
 
         std::vector<std::string> wellNames(const std::string& pattern, size_t timeStep, const std::vector<std::string>& matching_wells = {}) const;
         std::vector<std::string> wellNames(const std::string& pattern) const;

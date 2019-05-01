@@ -1072,7 +1072,7 @@ inline std::vector<Well2> find_wells( const Schedule& schedule,
         (type == ECL_SMSPEC_COMPLETION_VAR) ||
         (type == ECL_SMSPEC_SEGMENT_VAR))
     {
-        const auto& well = schedule.getWell2atEnd( name );
+        const auto& well = schedule.getWell2( name, sim_step );
         return { well };
     }
 
@@ -1092,13 +1092,15 @@ inline std::vector<Well2> find_wells( const Schedule& schedule,
 
         for ( const auto& connection : regionCache.connections( region ) ){
             const auto& w_name = connection.first;
-            const auto& well = schedule.getWell2atEnd( w_name );
+            if (schedule.hasWell(w_name, sim_step)) {
+                const auto& well = schedule.getWell2( w_name, sim_step );
 
-            const auto& it = std::find_if( wells.begin(), wells.end(),
-                                           [&] ( const Well2& elem )
-                                           { return elem.name() == well.name(); });
-            if ( it == wells.end() )
-                wells.push_back( schedule.getWell2atEnd( w_name ) );
+                const auto& it = std::find_if( wells.begin(), wells.end(),
+                                               [&] ( const Well2& elem )
+                                               { return elem.name() == well.name(); });
+                if ( it == wells.end() )
+                    wells.push_back( schedule.getWell2( w_name, sim_step ));
+            }
         }
 
         return wells;
