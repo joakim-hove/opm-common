@@ -584,6 +584,13 @@ std::size_t Well2::firstTimeStep() const {
     return this->init_step;
 }
 
+bool Well2::hasBeenDefined(size_t timeStep) const {
+    if (timeStep < this->init_step)
+        return false;
+    else
+        return true;
+}
+
 
 
 bool Well2::canOpen() const {

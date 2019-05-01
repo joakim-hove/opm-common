@@ -66,6 +66,7 @@ public:
     GuideRate::GuideRatePhaseEnum getGuideRatePhase() const;
     double getGuideRateScalingFactor() const;
 
+    bool hasBeenDefined(size_t timeStep) const;
     std::size_t firstTimeStep() const;
     bool canOpen() const;
     bool isProducer() const;

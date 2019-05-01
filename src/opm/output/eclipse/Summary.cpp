@@ -1416,8 +1416,10 @@ well_efficiency_factors( const ecl::smspec_node* node,
     const auto &groupTree = schedule.getGroupTree(sim_step);
 
     for( const auto& well : schedule_wells ) {
-        double eff_factor = well.getEfficiencyFactor();
+        if (!well.hasBeenDefined(sim_step))
+            continue;
 
+        double eff_factor = well.getEfficiencyFactor();
         const auto* group_node = &schedule.getGroup(well.groupName());
 
         while(true){
