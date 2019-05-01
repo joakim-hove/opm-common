@@ -1785,7 +1785,7 @@ namespace Opm {
             auto& dynamic_state = wells_static.at(wellName);
             const std::string& group = record.getItem<ParserKeywords::WELSPECS::GROUP>().getTrimmedString(0);
             std::size_t insert_index = this->wells_static.size() - 1;
-            auto well_ptr = std::make_shared<Well2>(wellName, group, insert_index, headI, headJ, refDepth, preferredPhase, wellConnectionOrder);
+            auto well_ptr = std::make_shared<Well2>(wellName, group, timeStep, insert_index, headI, headJ, refDepth, preferredPhase, wellConnectionOrder);
 
             well_ptr->updateCrossFlow(allowCrossFlow);
             well_ptr->updateAutoShutin(automaticShutIn);

@@ -52,6 +52,7 @@ class Well2 {
 public:
     Well2(const std::string& wname,
           const std::string& gname,
+          std::size_t init_step,
           std::size_t insert_index,
           int headI,
           int headJ,
@@ -65,6 +66,7 @@ public:
     GuideRate::GuideRatePhaseEnum getGuideRatePhase() const;
     double getGuideRateScalingFactor() const;
 
+    std::size_t firstTimeStep() const;
     bool canOpen() const;
     bool isProducer() const;
     bool isInjector() const;
@@ -147,6 +149,7 @@ public:
 private:
     std::string wname;
     std::string group_name;
+    std::size_t init_step;
     std::size_t insert_index;
     int headI;
     int headJ;

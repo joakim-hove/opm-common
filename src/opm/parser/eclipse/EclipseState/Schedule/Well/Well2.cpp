@@ -72,6 +72,7 @@ namespace {
 
 Well2::Well2(const std::string& wname,
              const std::string& gname,
+             std::size_t init_step,
              std::size_t insert_index,
              int headI,
              int headJ,
@@ -80,6 +81,7 @@ Well2::Well2(const std::string& wname,
              WellCompletion::CompletionOrderEnum ordering):
     wname(wname),
     group_name(gname),
+    init_step(init_step),
     insert_index(insert_index),
     headI(headI),
     headJ(headJ),
@@ -576,6 +578,12 @@ bool Well2::handleWELSEGS(const DeckKeyword& keyword) {
 void Well2::filterConnections(const EclipseGrid& grid) {
     this->connections->filter(grid);
 }
+
+
+std::size_t Well2::firstTimeStep() const {
+    return this->init_step;
+}
+
 
 
 bool Well2::canOpen() const {
