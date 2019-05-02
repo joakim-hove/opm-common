@@ -1072,8 +1072,11 @@ inline std::vector<Well2> find_wells( const Schedule& schedule,
         (type == ECL_SMSPEC_COMPLETION_VAR) ||
         (type == ECL_SMSPEC_SEGMENT_VAR))
     {
-        const auto& well = schedule.getWell2( name, sim_step );
-        return { well };
+        if (schedule.hasWell(name, sim_step)) {
+            const auto& well = schedule.getWell2( name, sim_step );
+            return { well };
+        } else
+            return {};
     }
 
     if( type == ECL_SMSPEC_GROUP_VAR ) {
@@ -1083,7 +1086,7 @@ inline std::vector<Well2> find_wells( const Schedule& schedule,
     }
 
     if( type == ECL_SMSPEC_FIELD_VAR )
-        return schedule.getWells2atEnd();
+        return schedule.getWells2(sim_step);
 
     if( type == ECL_SMSPEC_REGION_VAR ) {
         std::vector<Well2> wells;

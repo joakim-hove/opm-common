@@ -136,8 +136,8 @@ BOOST_AUTO_TEST_CASE(UDQ_SORTA_EXAMPLE) {
             BOOST_CHECK_EQUAL(w4.getStatus(), WellCommon::StatusEnum::OPEN );
         }
         {
-            const auto& w1 = td.schedule.getWell2("P1", 4);
-            const auto& w4 = td.schedule.getWell2("P4", 4);
+            const auto& w1 = td.schedule.getWell2atEnd("P1");
+            const auto& w4 = td.schedule.getWell2atEnd("P4");
             BOOST_CHECK_EQUAL(w1.getStatus(), WellCommon::StatusEnum::OPEN );
             BOOST_CHECK_EQUAL(w4.getStatus(), WellCommon::StatusEnum::SHUT );
         }
