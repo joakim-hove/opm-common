@@ -49,7 +49,6 @@ namespace Opm {
         double  ALQValue    = 0.0;
         bool    predictionMode = false;
         WellProducer::ControlModeEnum controlMode = WellProducer::CMODE_UNDEFINED;
-        WellProducer::ControlModeEnum whistctl_cmode = WellProducer::CMODE_UNDEFINED;
 
         bool operator==(const WellProductionProperties& other) const;
         bool operator!=(const WellProductionProperties& other) const;
@@ -80,7 +79,7 @@ namespace Opm {
         int m_productionControls = 0;
         void init_rates( const DeckRecord& record );
 
-        void init_history(const DeckRecord& record);
+        void init_history(const DeckRecord& record, WellProducer::ControlModeEnum whistctl_cmode);
 
         WellProductionProperties(const DeckRecord& record);
 

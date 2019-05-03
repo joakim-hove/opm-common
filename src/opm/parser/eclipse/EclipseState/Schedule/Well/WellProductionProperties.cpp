@@ -42,7 +42,7 @@ namespace Opm {
     }
 
 
-    void WellProductionProperties::init_history(const DeckRecord& record)
+    void WellProductionProperties::init_history(const DeckRecord& record,  WellProducer::ControlModeEnum whistctl_cmode)
     {
         this->predictionMode = false;
         // update LiquidRate
@@ -62,8 +62,8 @@ namespace Opm {
         namespace wp = WellProducer;
         auto cmode = wp::CMODE_UNDEFINED;
 
-        if (effectiveHistoryProductionControl(this->whistctl_cmode) )
-            cmode = this->whistctl_cmode;
+        if (effectiveHistoryProductionControl(whistctl_cmode) )
+            cmode = whistctl_cmode;
         else
             cmode = wp::ControlModeFromString( cmodeItem.getTrimmedString( 0 ) );
 

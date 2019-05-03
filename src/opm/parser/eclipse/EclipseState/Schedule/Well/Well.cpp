@@ -68,9 +68,6 @@ namespace Opm {
           m_segmentset( timeMap, WellSegments{} ),
           timesteps( timeMap.numTimesteps() )
     {
-        WellProductionProperties p;
-        p.whistctl_cmode = whist_ctl;
-        this->m_productionProperties = DynamicState<WellProductionProperties>(timeMap, p);
     }
 
     const std::string& Well::name() const {
