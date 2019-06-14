@@ -22,6 +22,7 @@
 
 #include <iosfwd>
 
+#include <opm/parser/eclipse/Deck/UDAValue.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/ScheduleEnums.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/InjectionControls.hpp>
 
@@ -32,12 +33,12 @@ namespace Opm {
     class SummaryState;
 
     struct WellInjectionProperties {
-        double  surfaceInjectionRate;
-        double  reservoirInjectionRate;
         std::string name;
+        UDAValue  surfaceInjectionRate;
+        UDAValue  reservoirInjectionRate;
+        UDAValue  BHPLimit;
+        UDAValue  THPLimit;
         double  temperature;
-        double  BHPLimit;
-        double  THPLimit;
         double  BHPH;
         double  THPH;
         int     VFPTableNumber;
@@ -73,7 +74,7 @@ namespace Opm {
         void resetDefaultHistoricalBHPLimit();
 
         void setBHPLimit(const double limit);
-        InjectionControls controls(const SummaryState& st) const;
+        InjectionControls controls(const UnitSystem& unit_system, const SummaryState& st) const;
     };
 
     std::ostream& operator<<( std::ostream&, const WellInjectionProperties& );
