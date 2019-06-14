@@ -32,7 +32,14 @@ double eval_well_uda(const UDAValue& value, const std::string& well, const Summa
     if (value.is<double>())
         return value.get<double>();
 
-    double output_value = st.get(value.get<std::string>());
+    double output_value;
+    const std::string& string_var = value.get<std::string>();
+
+    if (st.has_well_var(well, value.get<std::string>()))
+        output_value = st.get_well_var(well, string_var);
+    else
+        output_value = st.get(string_var);
+
     return value.get_dim().convertRawToSi(output_value);
 }
 
