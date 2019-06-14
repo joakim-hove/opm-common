@@ -30,11 +30,12 @@
 
 namespace Opm {
 
-    WellInjectionProperties::WellInjectionProperties()
-      : injectorType(WellInjector::WATER),
-        controlMode(WellInjector::CMODE_UNDEFINED) {
-        surfaceInjectionRate=0.0;
-        reservoirInjectionRate=0.0;
+
+    WellInjectionProperties::WellInjectionProperties(const std::string& name)
+        : name(name),
+          injectorType(WellInjector::WATER),
+          controlMode(WellInjector::CMODE_UNDEFINED)
+    {
         temperature=
             Metric::TemperatureOffset
             + ParserKeywords::STCOND::TEMPERATURE::defaultValue;
