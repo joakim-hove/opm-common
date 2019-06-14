@@ -23,6 +23,7 @@
 #include <iosfwd>
 #include <memory>
 
+#include <opm/parser/eclipse/Deck/UDAValue.hpp>
 #include <opm/parser/eclipse/EclipseState/Runspec.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/ScheduleEnums.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/ProductionControls.hpp>
@@ -37,14 +38,14 @@ namespace Opm {
         std::string name;
         // the rates serve as limits under prediction mode
         // while they are observed rates under historical mode
-        double  OilRate     = 0.0;
-        double  WaterRate   = 0.0;
-        double  GasRate     = 0.0;
-        double  LiquidRate  = 0.0;
-        double  ResVRate    = 0.0;
+        UDAValue  OilRate;
+        UDAValue  WaterRate;
+        UDAValue  GasRate;
+        UDAValue  LiquidRate;
+        UDAValue  ResVRate;
         // BHP and THP limit
-        double  BHPLimit    = 0.0;
-        double  THPLimit    = 0.0;
+        UDAValue  BHPLimit;
+        UDAValue  THPLimit;
         // historical BHP and THP under historical mode
         double  BHPH        = 0.0;
         double  THPH        = 0.0;
@@ -56,7 +57,6 @@ namespace Opm {
 
         bool operator==(const WellProductionProperties& other) const;
         bool operator!=(const WellProductionProperties& other) const;
-        WellProductionProperties();
         WellProductionProperties(const std::string& name);
 
         bool hasProductionControl(WellProducer::ControlModeEnum controlModeArg) const {
