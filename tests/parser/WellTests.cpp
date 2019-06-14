@@ -754,6 +754,7 @@ BOOST_AUTO_TEST_CASE(CMODE_DEFAULT) {
 
 BOOST_AUTO_TEST_CASE(WELL_CONTROLS) {
     Opm::Well2 well("WELL", "GROUP", 0, 0, 0, 0, 1000, Opm::Phase::OIL, Opm::WellProducer::CMODE_UNDEFINED, Opm::WellCompletion::DEPTH, UnitSystem::newMETRIC(), 0);
+    Opm::WellProductionProperties prod("OP1");
     Opm::SummaryState st;
     well.productionControls(st);
 
@@ -761,6 +762,7 @@ BOOST_AUTO_TEST_CASE(WELL_CONTROLS) {
     st.update("FUX", 1);
     prod.OilRate = UDAValue("FUX");
     BOOST_CHECK_EQUAL(1, prod.controls(st, 0).oil_rate);
+
 
 
     // Use the wellrate WUX for well OP1; the well is now added with
