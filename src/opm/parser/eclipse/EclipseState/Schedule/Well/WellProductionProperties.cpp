@@ -31,8 +31,10 @@
 
 namespace Opm {
 
-    WellProductionProperties::
-    WellProductionProperties() : predictionMode( true )
+
+    WellProductionProperties::WellProductionProperties(const std::string& name)
+        : name(name),
+          predictionMode( true )
     {}
 
 

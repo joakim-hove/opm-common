@@ -34,6 +34,7 @@ namespace Opm {
 
     class WellProductionProperties {
     public:
+        std::string name;
         // the rates serve as limits under prediction mode
         // while they are observed rates under historical mode
         double  OilRate     = 0.0;
@@ -56,6 +57,7 @@ namespace Opm {
         bool operator==(const WellProductionProperties& other) const;
         bool operator!=(const WellProductionProperties& other) const;
         WellProductionProperties();
+        WellProductionProperties(const std::string& name);
 
         bool hasProductionControl(WellProducer::ControlModeEnum controlModeArg) const {
             return (m_productionControls & controlModeArg) != 0;
