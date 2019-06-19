@@ -40,6 +40,8 @@ double eval_well_uda(const UDAValue& value, const std::string& well, const Summa
     else
         output_value = st.get(string_var);
 
+    // We do not handle negative rates.
+    output_value = std::max(0.0, output_value);
     return value.get_dim().convertRawToSi(output_value);
 }
 
