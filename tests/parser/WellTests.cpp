@@ -764,7 +764,6 @@ BOOST_AUTO_TEST_CASE(WELL_CONTROLS) {
     BOOST_CHECK_EQUAL(1, prod.controls(st, 0).oil_rate);
 
 
-
     // Use the wellrate WUX for well OP1; the well is now added with
     // SummaryState::update_well_var() and we should automatically fetch the
     // correct well value.
