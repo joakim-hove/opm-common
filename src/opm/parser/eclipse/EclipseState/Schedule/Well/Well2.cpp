@@ -712,7 +712,7 @@ bool Well2::wellNameInWellNamePattern(const std::string& wellName, const std::st
 
 ProductionControls Well2::productionControls(const SummaryState& st) const {
     if (this->isProducer()) {
-        auto controls = this->production->controls(st);
+        auto controls = this->production->controls(st, this->udq_undefined);
         controls.prediction_mode = this->predictionMode();
         return controls;
     } else
@@ -721,7 +721,7 @@ ProductionControls Well2::productionControls(const SummaryState& st) const {
 
 InjectionControls Well2::injectionControls(const SummaryState& st) const {
     if (!this->isProducer()) {
-        auto controls = this->injection->controls(this->unit_system, st);
+        auto controls = this->injection->controls(this->unit_system, st, this->udq_undefined);
         controls.prediction_mode = this->predictionMode();
         return controls;
     } else

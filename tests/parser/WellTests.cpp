@@ -760,20 +760,20 @@ BOOST_AUTO_TEST_CASE(WELL_CONTROLS) {
     // Use a scalar FIELD variable - that should work; although it is a bit weird.
     st.update("FUX", 1);
     prod.OilRate = UDAValue("FUX");
-    BOOST_CHECK_EQUAL(1, prod.controls(st).oil_rate);
+    BOOST_CHECK_EQUAL(1, prod.controls(st, 0).oil_rate);
 
 
     // Use the wellrate WUX for well OP1; well is not yet in SummaryState and the whole
     // thing should blow up.
     prod.OilRate = UDAValue("WUX");
-    BOOST_CHECK_THROW(prod.controls(st), std::out_of_range);
+    BOOST_CHECK_THROW(prod.controls(st, 0), std::out_of_range);
 
     // Use the wellrate WUX for well OP1; the well is now added with
     // SummaryState::update_well_var() and we should automatically fetch the
     // correct well value.
     prod.OilRate = UDAValue("WUX");
     st.update_well_var("OP1", "WUX", 10);
-    BOOST_CHECK_EQUAL(10, prod.controls(st).oil_rate);
+    BOOST_CHECK_EQUAL(10, prod.controls(st, 0).oil_rate);
 }
 
 

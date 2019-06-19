@@ -278,16 +278,16 @@ namespace Opm {
     }
 
 
-    ProductionControls WellProductionProperties::controls(const SummaryState& st) const {
+    ProductionControls WellProductionProperties::controls(const SummaryState& st, double udq_undefined) const {
         ProductionControls controls(this->m_productionControls);
 
-        controls.oil_rate = UDA::eval_well_uda(this->OilRate, this->name, st);
-        controls.water_rate = UDA::eval_well_uda(this->WaterRate, this->name, st);
-        controls.gas_rate = UDA::eval_well_uda(this->GasRate, this->name, st);
-        controls.liquid_rate = UDA::eval_well_uda(this->LiquidRate, this->name, st);
-        controls.resv_rate = UDA::eval_well_uda(this->ResVRate, this->name, st);
-        controls.bhp_limit = UDA::eval_well_uda(this->BHPLimit, this->name, st);
-        controls.thp_limit= UDA::eval_well_uda(this->THPLimit, this->name, st);
+        controls.oil_rate = UDA::eval_well_uda(this->OilRate, this->name, st, udq_undefined);
+        controls.water_rate = UDA::eval_well_uda(this->WaterRate, this->name, st, udq_undefined);
+        controls.gas_rate = UDA::eval_well_uda(this->GasRate, this->name, st, udq_undefined);
+        controls.liquid_rate = UDA::eval_well_uda(this->LiquidRate, this->name, st, udq_undefined);
+        controls.resv_rate = UDA::eval_well_uda(this->ResVRate, this->name, st, udq_undefined);
+        controls.bhp_limit = UDA::eval_well_uda(this->BHPLimit, this->name, st, udq_undefined);
+        controls.thp_limit= UDA::eval_well_uda(this->THPLimit, this->name, st, udq_undefined);
 
         controls.bhp_history = this->BHPH;
         controls.thp_history = this->THPH;

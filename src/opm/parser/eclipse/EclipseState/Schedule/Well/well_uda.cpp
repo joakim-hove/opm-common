@@ -28,16 +28,16 @@
 namespace Opm {
 namespace UDA {
 
-double eval_well_uda(const UDAValue& value, const std::string& well, const SummaryState& st) {
+  double eval_well_uda(const UDAValue& value, const std::string& well, const SummaryState& st, double udq_default) {
     if (value.is<double>())
         return value.get<double>();
 
-    double output_value;
     const std::string& string_var = value.get<std::string>();
+    double output_value = udq_default;
 
     if (st.has_well_var(well, value.get<std::string>()))
         output_value = st.get_well_var(well, string_var);
-    else
+    else if (st.has(string_var))
         output_value = st.get(string_var);
 
     // We do not handle negative rates.
@@ -46,8 +46,8 @@ double eval_well_uda(const UDAValue& value, const std::string& well, const Summa
 }
 
 
-double eval_well_uda_rate(const UDAValue& value, const std::string& well, const SummaryState& st, WellInjector::TypeEnum wellType, const UnitSystem& unitSystem) {
-    double raw_rate = eval_well_uda(value, well, st);
+double eval_well_uda_rate(const UDAValue& value, const std::string& well, const SummaryState& st, double udq_default, WellInjector::TypeEnum wellType, const UnitSystem& unitSystem) {
+    double raw_rate = eval_well_uda(value, well, st, udq_default);
     return injection::rateToSI(raw_rate, wellType, unitSystem);
 }
 
