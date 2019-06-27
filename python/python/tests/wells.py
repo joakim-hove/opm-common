@@ -1,6 +1,8 @@
 import unittest
 import sunbeam
 
+raise Exception("kkk")
+
 class TestWells(unittest.TestCase):
 
     @classmethod
