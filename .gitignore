@@ -69,3 +69,5 @@ install
 
 # emacs directory setting:
 .dir-locals.el
+
+*.pyc
