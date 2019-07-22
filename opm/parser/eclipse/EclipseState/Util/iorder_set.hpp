@@ -57,20 +57,12 @@ public:
         return (this->size() == 0);
     }
 
-<<<<<<< HEAD
     std::size_t count(const T& value) const {
         return this->index.count(value);
     }
 
     bool contains(const T& value) const {
-=======
-    std::size_t count(const T& value) {
-        return this->index.count(value);
-    }
-
-    bool contains(const T& value) {
->>>>>>> Add insert ordered set
-        return (this->count(value) != 0);
+        return (this->index.count(value) != 0);
     }
 
     bool insert(const T& value) {
