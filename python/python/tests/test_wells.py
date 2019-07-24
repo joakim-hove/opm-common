@@ -1,13 +1,11 @@
 import unittest
 import sunbeam
 
-raise Exception("kkk")
-
 class TestWells(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.sch = sunbeam.parse('spe3/SPE3CASE1.DATA').schedule
+        cls.sch = sunbeam.parse('tests/spe3/SPE3CASE1.DATA').schedule
         cls.timesteps = cls.sch.timesteps
 #        cls.wells = cls.sch.wells
 

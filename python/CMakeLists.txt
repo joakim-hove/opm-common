@@ -16,5 +16,4 @@ endif ()
 add_subdirectory( pybind11 )
 add_subdirectory( python )
 add_subdirectory( sunbeam )
-add_subdirectory( tests )
 

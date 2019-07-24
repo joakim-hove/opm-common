@@ -9,3 +9,4 @@ else()
 endif()
 
 add_subdirectory( sunbeam )
+add_subdirectory( tests )
