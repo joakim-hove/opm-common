@@ -7,6 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='Sunbeam',
+    package_dir = {'': 'python'},
     packages=[
                 'sunbeam',
                 'sunbeam.tools',
