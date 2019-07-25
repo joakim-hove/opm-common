@@ -5,7 +5,11 @@ from setuptools.command.build_ext import build_ext
 import sys
 import setuptools
 
+import glob
+import os
 
+
+"""
 ext_modules = [
     Extension(
         'libsunbeam',
@@ -33,9 +37,30 @@ ext_modules = [
             '/home/stf/opm/opm-common/build/include',
             'pybind11/include'
         ],
+        library_dirs=['/usr/X11R6/lib'],
         language='c++'
     ),
 ]
+"""
+
+ext_modules = [
+    Extension(
+        'libsunbeam',
+        glob.glob(os.path.join('src', '*.cpp')),
+        include_dirs=[
+            'src',
+            '/home/stf/ert/install/include',
+            '/home/stf/opm/opm-common',
+            '/home/stf/opm/opm-common/build/include',
+            'pybind11/include'
+        ],
+        library_dirs=['/home/stf/opm/opm-common/build/lib'],
+        libraries=['opmcommon'],
+        language='c++',
+        undef_macros=["NDEBUG"],
+    ),
+]
+
 
 
 setup(
