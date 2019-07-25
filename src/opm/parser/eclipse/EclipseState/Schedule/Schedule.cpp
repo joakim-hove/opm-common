@@ -1875,6 +1875,20 @@ namespace {
         return m_rootGroupTree.get(timeStep);
     }
 
+
+    GroupTree2 Schedule::groupTree(const std::string& root_node, std::size_t report_step) const {
+        auto root_group = this->getGroup2(root_node, report_step);
+        GroupTree2 tree(root_group);
+
+        for (const auto& wname : root_group.wells()) {
+            const auto& well = this->getWell2(wname, report_step);
+            tree.add_well(well);
+        }
+
+        return tree;
+    }
+
+
     void Schedule::addWell(const std::string& wellName,
                            const DeckRecord& record,
                            size_t timeStep,

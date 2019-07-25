@@ -444,6 +444,18 @@ BOOST_AUTO_TEST_CASE(CreateScheduleDeckWellsOrderedGRUPTREE) {
 }
 
 
+BOOST_AUTO_TEST_CASE(GroupTree2TEST) {
+    auto deck = createDeckWithWellsOrderedGRUPTREE();
+    EclipseGrid grid(100,100,100);
+    TableManager table ( deck );
+    Eclipse3DProperties eclipseProperties ( deck , table, grid);
+    Runspec runspec (deck);
+    Schedule schedule(deck, grid , eclipseProperties, runspec);
+
+    BOOST_CHECK_THROW( schedule.groupTree("NO_SUCH__GROUP", 1), std::invalid_argument);
+}
+
+
 BOOST_AUTO_TEST_CASE(CreateScheduleDeckWithStart) {
     auto deck = createDeck();
     EclipseGrid grid(10,10,10);

@@ -31,6 +31,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/Group.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/Group2.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GroupTree.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/Group/GroupTree2.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/OilVaporizationProperties.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/ScheduleEnums.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Tuning.hpp>
@@ -142,6 +143,7 @@ namespace Opm
         const Actions& actions() const;
         void evalAction(const SummaryState& summary_state, size_t timeStep);
 
+        GroupTree2 groupTree(const std::string& root_node, size_t time_step) const;
         const GroupTree& getGroupTree(size_t t) const;
         std::vector< const Group* > getChildGroups(const std::string& group_name, size_t timeStep) const;
         size_t numGroups() const;
