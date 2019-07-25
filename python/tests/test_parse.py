@@ -30,7 +30,7 @@ FIPNUM
 
     def setUp(self):
         self.spe3fn = 'tests/spe3/SPE3CASE1.DATA'
-        self.norne_fname = os.path.abspath('../examples/data/norne/NORNE_ATW2013.DATA')
+        self.norne_fname = os.path.abspath('examples/data/norne/NORNE_ATW2013.DATA')
 
     def test_parse(self):
         spe3 = sunbeam.parse(self.spe3fn)
