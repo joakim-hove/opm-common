@@ -26,7 +26,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Schedule.hpp>
 
 
-#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQInput.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQConfig.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQActive.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQDefine.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQAssign.hpp>
@@ -49,15 +49,11 @@ namespace {
 
 
     template <typename UDQOp>
-    void UDQLoop(const std::size_t no_udqs,
-                  UDQOp&&          udqOp)
+    void UDQLoop(const UDQConfig& udqCfg,
+                  UDQOp&&         udqOp)
     {
-        auto udqID = std::size_t{0};
-        for (std::size_t iudq = 0; iudq < no_udqs; iudq++) {
-            udqID += 1;
-
-            udqOp(iudq, udqID - 1);
-        }
+        for (const auto& udq_input : udqCfg.input())
+            udqOp(udq_input);
     }
     
     /*std::string hash(const std::string& udq, const std::string& keyword, const std::string& control) {
@@ -79,16 +75,25 @@ namespace {
         }
 
         template <class IUDQArray>
-        void staticContrib(const Opm::Schedule& sched, 
-			   const std::size_t simStep,
-			   const int indUdq,
-			   IUDQArray& iUdq)
+        void staticContrib(const UDQInput& udq_input, IUDQArray& iUdq)
         {
 	    // loop over the current UDQs and write the required properties to the restart file
 	    
 	    //Get UDQ config data for the actual report step
 	    auto udqCfg = sched.getUDQConfig(simStep);
 	    const std::string& key = udqCfg.udqKey(indUdq);
+      if (udq_input.is<UDQDefine>()) {
+          iUdq[0] = 2;
+          iUdq[1] = -4;
+      } else {
+          iUdq[0] = 0;
+          iUdq[1] = 0;
+      }
+
+      iUdq[2] = ??;
+
+
+
 	    if (udqCfg.has_keyword(key)) {
 		// entry 1 is type of UDQ (0: ASSIGN and UPDATE-OFF, 1: ASSIGN and UPDATE-NEXT, 2: DEFINE and UPDATE-ON)
 		iUdq[0] = (udqCfg.is_define(key)) ? 2 : 0;
@@ -362,15 +367,16 @@ captureDeclaredUDQData(const Opm::Schedule&                 sched,
     iuad_data.noIUADs(sched, simStep);
     const auto& no_iuad = iuad_data.count(); 
     
-    UDQLoop(no_udq, [&sched, simStep, this]
-        (const std::size_t& ind_iudq, const std::size_t udqID) -> void
+    UDQLoop(udqCfg, [&sched, simStep, this]
+        (const UDQInput& input) -> void
     {
         auto i_udq = this->iUDQ_[udqID];
 
         iUdq::staticContrib(sched, simStep, ind_iudq, i_udq);
     });
     
-    UDQLoop(no_iuad, [&iuad_data, this]
+
+    UDQLoop(udqCfg, [&iuad_data, this]
         (const std::size_t& ind_iuad, const std::size_t uadID) -> void
     {
         auto i_uad = this->iUAD_[uadID];
@@ -378,7 +384,7 @@ captureDeclaredUDQData(const Opm::Schedule&                 sched,
         iUad::staticContrib(iuad_data, ind_iuad, i_uad);
     });
 	
-    UDQLoop(no_udq, [&sched, simStep, this]
+    UDQLoop(udqCfg, [&sched, simStep, this]
         (const std::size_t& ind_zudn, const std::size_t udqID) -> void
     {
         auto z_udn = this->zUDN_[udqID];
@@ -386,7 +392,7 @@ captureDeclaredUDQData(const Opm::Schedule&                 sched,
         zUdn::staticContrib(sched, simStep, ind_zudn, z_udn);
     });
     
-        UDQLoop(no_udq, [&sched, simStep, this]
+        UDQLoop(udqCfg, [&sched, simStep, this]
         (const std::size_t& ind_zudl, const std::size_t udqID) -> void
     {
         auto z_udl = this->zUDL_[udqID];
