@@ -59,7 +59,7 @@ ext_modules = [
             '/usr/include'
         ],
         library_dirs=['/home/stf/opm/opm-common/build/lib', '/usr/include'],
-        libraries=['opmcommon', 'boost_filesystem'],
+        libraries=['opmcommon', 'boost_filesystem', 'boost_regex'],
         language='c++',
         undef_macros=["NDEBUG"],
     ),
