@@ -7,6 +7,9 @@ import setuptools
 
 import glob
 import os
+import ecl
+
+Boost_SYSTEM_LIBRARY = ""
 
 
 """
@@ -52,7 +55,7 @@ ext_modules = [
             '/home/stf/ert/install/include',
             '/home/stf/opm/opm-common',
             '/home/stf/opm/opm-common/build/include',
-            'pybind11/include'
+            'pybind11/include',
         ],
         library_dirs=['/home/stf/opm/opm-common/build/lib'],
         libraries=['opmcommon'],
