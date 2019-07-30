@@ -55,10 +55,9 @@ ext_modules = [
             '/home/stf/ert/install/include',
             '/home/stf/opm/opm-common',
             '/home/stf/opm/opm-common/build/include',
-            'pybind11/include',
-            '/usr/include'
+            'pybind11/include'
         ],
-        library_dirs=['/home/stf/opm/opm-common/build/lib', '/usr/include'],
+        library_dirs=['/home/stf/opm/opm-common/build/lib'],
         libraries=['opmcommon', 'boost_filesystem', 'boost_regex'],
         language='c++',
         undef_macros=["NDEBUG"],
