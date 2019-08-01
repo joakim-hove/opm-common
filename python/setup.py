@@ -12,13 +12,13 @@ import ecl
 ext_modules = [
     Extension(
         'libsunbeam',
-        glob.glob(os.path.join('python/src', '*.cpp')),
+        glob.glob(os.path.join('src', '*.cpp')),
         include_dirs=[
-            'python/src',
+            'src',
             '/home/stf/ert/install/include',
             '/home/stf/opm/opm-common',
             '/home/stf/opm/opm-common/build/include',
-            'python/pybind11/include'
+            'pybind11/include'
         ],
         library_dirs=['/home/stf/opm/opm-common/build/lib'],
         libraries=['opmcommon', 'boost_filesystem', 'boost_regex'],
@@ -31,7 +31,7 @@ ext_modules = [
 
 setup(
     name='Sunbeam',
-    package_dir = {'': 'python/python'},
+    package_dir = {'': 'python'},
     packages=[
                 'sunbeam',
                 'sunbeam.tools',
