@@ -40,6 +40,6 @@ setup(
     ext_modules=ext_modules,
     license='Open Source',
     zip_safe=False,
-    #tests_suite=['python/tests'],
+    tests_suite=['tests'],
     setup_requires=["pytest-runner", 'setuptools_scm'],
 )
