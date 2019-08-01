@@ -213,12 +213,19 @@ install(FILES etc/opm_bash_completion.sh.in DESTINATION share/opm/etc)
 if (OPM_ENABLE_PYTHON)
 
   add_custom_target(sunbeam ALL)
+  add_dependencies(sunbeam opmcommon)
   add_custom_command(TARGET sunbeam PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/python/ ${CMAKE_BINARY_DIR}/python)
-  add_custom_command(TARGET sunbeam PRE_BUILD COMMAND python ${CMAKE_BINARY_DIR}/python/setup.py build_ext --build-lib ${CMAKE_BINARY_DIR}/python/python/sunbeam WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python)
+  add_custom_command(TARGET sunbeam PRE_BUILD COMMAND python ${CMAKE_BINARY_DIR}/python/setup.py 
+                                                      build_ext 
+                                                      --build-lib=${CMAKE_BINARY_DIR}/python/python/sunbeam
+                                                      --library-dirs=${CMAKE_BINARY_DIR}/lib
+                                                      --include-dirs=src:${CMAKE_PREFIX_PATH}/include:${CMAKE_SOURCE_DIR}:${CMAKE_BINARY_DIR}/include:pybind11/include
+                                                      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python
+                     )
 
   add_test(NAME python_tests
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python
-            COMMAND python setup.py test
+            COMMAND python setup.py build_ext --dry-run --build-lib ${CMAKE_BINARY_DIR}/python/python/sunbeam test
            )
 
   set_target_properties(opmcommon PROPERTIES POSITION_INDEPENDENT_CODE ON)

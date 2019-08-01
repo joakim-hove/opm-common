@@ -13,21 +13,11 @@ ext_modules = [
     Extension(
         'libsunbeam',
         glob.glob(os.path.join('src', '*.cpp')),
-        include_dirs=[
-            'src',
-            '/home/stf/ert/install/include',
-            '/home/stf/opm/opm-common',
-            '/home/stf/opm/opm-common/build/include',
-            'pybind11/include'
-        ],
-        library_dirs=['/home/stf/opm/opm-common/build/lib'],
         libraries=['opmcommon', 'boost_filesystem', 'boost_regex'],
         language='c++',
         undef_macros=["NDEBUG"],
     ),
 ]
-
-
 
 setup(
     name='Sunbeam',
