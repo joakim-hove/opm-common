@@ -9,43 +9,6 @@ import glob
 import os
 import ecl
 
-Boost_SYSTEM_LIBRARY = ""
-
-
-"""
-ext_modules = [
-    Extension(
-        'libsunbeam',
-        [
-         'src/eclipse_state.cpp',
-         'src/deck_keyword.cpp',
-         'src/deck.cpp',
-         'src/well.cpp',
-         'src/sunbeam_state.cpp',
-         'src/schedule.cpp',
-         'src/connection.cpp',
-         'src/eclipse_config.cpp',
-         'src/table_manager.cpp',
-         'src/eclipse_grid.cpp',
-         'src/group.cpp',
-         'src/group_tree.cpp',
-         'src/eclipse_3d_properties.cpp',
-         'src/parser.cpp',
-         'src/sunbeam.cpp',
-        ],
-        include_dirs=[
-            'src',
-            '/home/stf/ert/install/include',
-            '/home/stf/opm/opm-common',
-            '/home/stf/opm/opm-common/build/include',
-            'pybind11/include'
-        ],
-        library_dirs=['/usr/X11R6/lib'],
-        language='c++'
-    ),
-]
-"""
-
 ext_modules = [
     Extension(
         'libsunbeam',

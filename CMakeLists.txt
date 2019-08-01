@@ -211,8 +211,13 @@ install(DIRECTORY cmake DESTINATION share/opm)
 install(FILES etc/opm_bash_completion.sh.in DESTINATION share/opm/etc)
 
 if (OPM_ENABLE_PYTHON)
+  #file(COPY /home/stf/opm/opm-common/python DESTINATION /home/stf/opm/opm-common/build)
+  add_custom_target(sunbeam ALL)
+  add_custom_command(TARGET sunbeam PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/python/ ${CMAKE_BINARY_DIR})
+  add_custom_command(TARGET sunbeam PRE_BUILD COMMAND python ${CMAKE_BINARY_DIR}/python/setup.py build_ext --build-lib ${CMAKE_BINARY_DIR}/python/python/sunbeam   )
+
   set_target_properties(opmcommon PROPERTIES POSITION_INDEPENDENT_CODE ON)
-  add_subdirectory(python)
+  #add_subdirectory(python)
 endif()
 
 
