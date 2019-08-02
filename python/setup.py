@@ -7,13 +7,12 @@ import setuptools
 
 import glob
 import os
-import ecl
 
 ext_modules = [
     Extension(
         'libsunbeam',
         glob.glob(os.path.join('src', '*.cpp')),
-        libraries=['opmcommon', 'boost_filesystem', 'boost_regex'],
+        libraries=['opmcommon', 'boost_filesystem', 'boost_regex', 'ecl'],
         language='c++',
         undef_macros=["NDEBUG"],
     ),

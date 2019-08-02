@@ -228,7 +228,7 @@ if (OPM_ENABLE_PYTHON)
   add_custom_command(TARGET sunbeam PRE_BUILD COMMAND python ${CMAKE_BINARY_DIR}/python/setup.py 
                                                       build_ext 
                                                       --build-lib=${CMAKE_BINARY_DIR}/python/python/sunbeam
-                                                      --library-dirs=${CMAKE_BINARY_DIR}/lib
+                                                      --library-dirs=${CMAKE_BINARY_DIR}/lib:${CMAKE_PREFIX_PATH}/lib
                                                       --include-dirs=src:${CMAKE_PREFIX_PATH}/include:${CMAKE_SOURCE_DIR}:${CMAKE_BINARY_DIR}/include:pybind11/include
                                                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python
                      )
