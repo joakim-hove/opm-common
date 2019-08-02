@@ -212,6 +212,16 @@ install(FILES etc/opm_bash_completion.sh.in DESTINATION share/opm/etc)
 
 if (OPM_ENABLE_PYTHON)
 
+  find_package(PythonInterp REQUIRED)
+  include(FindPythonInterp)
+
+  if (EXISTS "/etc/debian_version")
+    set( PYTHON_PACKAGE_PATH "dist-packages")
+  else()
+    set( PYTHON_PACKAGE_PATH "site-packages")
+  endif()
+  set(PYTHON_INSTALL_PREFIX "lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/${PYTHON_PACKAGE_PATH}/sunbeam" CACHE STRING "Subdirectory to install Python modules in")
+
   add_custom_target(sunbeam ALL)
   add_dependencies(sunbeam opmcommon)
   add_custom_command(TARGET sunbeam PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/python/ ${CMAKE_BINARY_DIR}/python)
@@ -222,6 +232,8 @@ if (OPM_ENABLE_PYTHON)
                                                       --include-dirs=src:${CMAKE_PREFIX_PATH}/include:${CMAKE_SOURCE_DIR}:${CMAKE_BINARY_DIR}/include:pybind11/include
                                                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python
                      )
+
+INSTALL( DIRECTORY ${CMAKE_BINARY_DIR}/python/python/sunbeam/  DESTINATION ${CMAKE_INSTALL_PREFIX}/${PYTHON_INSTALL_PREFIX})
 
   add_test(NAME python_tests
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python
