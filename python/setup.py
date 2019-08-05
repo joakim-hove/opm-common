@@ -11,7 +11,7 @@ import os
 ext_modules = [
     Extension(
         'libsunbeam',
-        glob.glob(os.path.join('src', '*.cpp')),
+        glob.glob(os.path.join('src_sunbeam', '*.cpp')),
         libraries=['opmcommon', 'boost_filesystem', 'boost_regex', 'ecl'],
         language='c++',
         undef_macros=["NDEBUG"],
