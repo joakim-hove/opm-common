@@ -225,11 +225,23 @@ if (OPM_ENABLE_PYTHON)
   add_custom_target(sunbeam ALL)
   add_dependencies(sunbeam opmcommon)
   add_custom_command(TARGET sunbeam PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/python/ ${CMAKE_BINARY_DIR}/python)
-  add_custom_command(TARGET sunbeam PRE_BUILD COMMAND python ${CMAKE_BINARY_DIR}/python/setup.py 
-                                                      build_ext 
+
+  get_target_property(_ecl_include_dirs ecl INTERFACE_INCLUDE_DIRECTORIES)
+  get_target_property(_opmcommon_include_dirs opmcommon INCLUDE_DIRECTORIES)
+  list(APPEND _opmcommon_include_dirs ${_ecl_include_dirs})
+  string(REPLACE ";" ":" _setup_include_dirs "${_opmcommon_include_dirs}")
+
+  get_target_property(_ecl_lib ecl LOCATION)
+  get_filename_component(_ecl_lib_dir ${_ecl_lib} DIRECTORY)
+  set(_opmcommon_lib_dirs ${_ecl_lib_dir} ${CMAKE_BINARY_DIR}/lib ${CMAKE_PREFIX_PATH}/lib)
+  string(REPLACE ";" ":" _setup_lib_dirs "${_opmcommon_lib_dirs}")
+
+
+  add_custom_command(TARGET sunbeam PRE_BUILD COMMAND python ${CMAKE_BINARY_DIR}/python/setup.py
+                                                      build_ext
                                                       --build-lib=${CMAKE_BINARY_DIR}/python/python/sunbeam
-                                                      --library-dirs=${CMAKE_BINARY_DIR}/lib:${CMAKE_PREFIX_PATH}/lib
-                                                      --include-dirs=src_sunbeam:${CMAKE_PREFIX_PATH}/include:${CMAKE_SOURCE_DIR}:${CMAKE_BINARY_DIR}/include:pybind11/include
+                                                      --library-dirs=${_setup_lib_dirs}
+                                                      --include-dirs=${_setup_include_dirs}
                                                       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/python
                      )
 
