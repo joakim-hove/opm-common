@@ -36,6 +36,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/WellConnections.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/Well2.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/SummaryState.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/GuideRate.hpp>
 
 #include <opm/parser/eclipse/Deck/Deck.hpp>
 #include <opm/parser/eclipse/Deck/DeckItem.hpp>
@@ -3336,3 +3337,16 @@ BOOST_AUTO_TEST_CASE(RFT_CONFIG2) {
     const auto& rft_config = schedule.rftConfig();
     BOOST_CHECK_EQUAL(1, rft_config.firstRFTOutput());
 }
+
+
+
+BOOST_AUTO_TEST_CASE(GuideRateTest) {
+    auto deck = createDeckRFTConfig();
+    EclipseGrid grid1(10,10,10);
+    TableManager table ( deck );
+    Eclipse3DProperties eclipseProperties ( deck , table, grid1);
+    Runspec runspec (deck);
+    Schedule schedule(deck, grid1 , eclipseProperties, runspec);
+    GuideRate gr(schedule);
+}
+
