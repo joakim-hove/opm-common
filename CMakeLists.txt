@@ -9,6 +9,8 @@ option(ENABLE_ECL_INPUT "Enable eclipse input support?" ON)
 option(ENABLE_ECL_OUTPUT "Enable eclipse output support?" ON)
 option(ENABLE_MOCKSIM "Build the mock simulator for io testing" ON)
 option(OPM_ENABLE_PYTHON "Enable python bindings?" OFF)
+option(OPM_ENABLE_EMBEDDED_PYTHON "Enable python bindings?" OFF)
+
 
 # Output implies input
 if(ENABLE_ECL_OUTPUT)
@@ -211,7 +213,8 @@ install(DIRECTORY cmake DESTINATION share/opm)
 install(FILES etc/opm_bash_completion.sh.in DESTINATION share/opm/etc)
 
 if (OPM_ENABLE_PYTHON)
-
+  # -------------------------------------------------------------------------
+  # 1: Wrap C++ functionality in Python
   find_package(PythonInterp REQUIRED)
   include(FindPythonInterp)
 
@@ -270,6 +273,17 @@ if (OPM_ENABLE_PYTHON)
 
   set_target_properties(opmcommon PROPERTIES POSITION_INDEPENDENT_CODE ON)
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/python/python)
+
+  # -------------------------------------------------------------------------
+  # 2: Embed the Python interpreter for keywords like PYACTION and PYINPUT
+  if (OPM_ENABLE_EMBEDDED_PYTHON)
+    add_subdirectory(python/pybind11)
+    #target_link_libraries(opmcommon PRIVATE pybind11::embed)
+    include_directories("python/pybind11/include;${PYTHON_INCLUDE_DIRS}")
+    target_link_libraries(opmcommon PRIVATE ${PYTHON_LIBRARY})
+
+    add_definitions(-DEMBEDDED_PYTHON)
+  endif()
 endif()
 
 
