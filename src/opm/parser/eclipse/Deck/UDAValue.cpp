@@ -23,20 +23,22 @@
 
 namespace Opm {
 
-UDAValue::UDAValue(double value):
+UDAValue::UDAValue(double value, Dimension dim_arg):
     numeric_value(true),
-    double_value(value)
+    double_value(value),
+    dim(dim_arg)
 {
 }
 
 
 UDAValue::UDAValue() :
-    UDAValue(0)
+    UDAValue(0, {})
 {}
 
-UDAValue::UDAValue(const std::string& value):
+UDAValue::UDAValue(const std::string& value, Dimension dim_arg):
     numeric_value(false),
-    string_value(value)
+    string_value(value),
+    dim(std::move(dim_arg))
 {
 }
 
@@ -90,9 +92,6 @@ std::string UDAValue::get() const {
 }
 
 
-void UDAValue::set_dim(const Dimension& dim_arg) const {
-    this->dim = dim_arg;
-}
 
 const Dimension& UDAValue::get_dim() const {
     return this->dim;

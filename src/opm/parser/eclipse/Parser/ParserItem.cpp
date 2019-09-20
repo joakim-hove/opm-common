@@ -178,7 +178,11 @@ ParserItem::ParserItem( const Json::JsonObject& json ) :
         break;
 
     case itype::UDA:
-        this->setDefault( UDAValue(json.get_double( "default" )) );
+        std::string dim{"1"};
+        if (json.has_item("Dimension"))
+            dim = json.get_string("Dimension");
+
+        this->setDefault( UDAValue(json.get_double( "default" ), dim) );
         break;
 
     case itype::STRING:
@@ -218,7 +222,7 @@ void ParserItem::setInputType(ParserItem::itype input_type_arg) {
         this->setDataType( std::string() );
 
     else if (input_type == itype::UDA)
-        this->setDataType( UDAValue(0) );
+        this->setDataType( UDAValue(0, {}) );
 
     else if (input_type == itype::CODE)
         this->setDataType( std::string() );

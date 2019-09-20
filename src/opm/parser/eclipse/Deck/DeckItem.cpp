@@ -323,9 +323,6 @@ void DeckItem::push_backDimension( const Dimension& active,
           UDAValues is unfortunate.
         */
 
-        if (du.size() == 1)
-            du[0].set_dim( dim_inactive ? def : active );
-
         this->dimensions.push_back( dim_inactive ? def : active );
         return;
     }

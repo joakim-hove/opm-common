@@ -32,8 +32,8 @@ namespace Opm {
 class UDAValue {
 public:
     UDAValue();
-    explicit UDAValue(double);
-    explicit UDAValue(const std::string&);
+    UDAValue(double, Dimension dim);
+    UDAValue(const std::string&, Dimension dim);
 
     template<typename T>
     T get() const;
@@ -46,7 +46,6 @@ public:
 
     void assert_numeric() const;
     void assert_numeric(const std::string& error_msg) const;
-    void set_dim(const Dimension& dim) const;
     const Dimension& get_dim() const;
 
     bool operator==(const UDAValue& other) const;
@@ -56,9 +55,7 @@ private:
     double double_value;
     std::string string_value;
 
-    /* This 'mutable' modifier is a hack to avoid tampering with the overall
-       const-ness of the data in a deck item. */
-    mutable Dimension dim;
+    Dimension dim;
 };
 
 std::ostream& operator<<( std::ostream& stream, const UDAValue& uda_value );
