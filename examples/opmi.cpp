@@ -50,6 +50,16 @@ inline void loadDeck( const char * deck_file) {
     Opm::Schedule schedule( deck, state.getInputGrid(), state.get3DProperties(), state.runspec(), parseContext, errors);
     Opm::SummaryConfig summary( deck, schedule, state.getTableManager( ), parseContext, errors );
     std::cout << "complete." << std::endl;
+
+
+
+    const auto& grid = state.getInputGrid();
+    const auto& satnum = state.get3DProperties().getIntGridProperty("SATNUM").getData();
+    for (std::size_t g = 0; g < satnum.size(); g++) {
+        if (grid.cellActive(g))
+            if (satnum[g] < 1)
+                throw std::invalid_argument("Bug in active cell. Actnum 0:" + std::to_string(g));
+    }
 }
 
 
