@@ -28,12 +28,15 @@
 #include <opm/parser/eclipse/Units/Dimension.hpp>
 #include <opm/parser/eclipse/Utility/Typetools.hpp>
 #include <opm/parser/eclipse/Deck/UDAValue.hpp>
+#include <opm/parser/eclipse/Deck/value_status.hpp>
+
 
 namespace Opm {
     class DeckOutput;
 
     class DeckItem {
     public:
+
         DeckItem() = default;
         DeckItem( const std::string&, int);
         DeckItem( const std::string&, std::string);
@@ -70,6 +73,8 @@ namespace Opm {
 
         template< typename T > const std::vector< T >& getData() const;
         const std::vector< double >& getSIDoubleData() const;
+        std::vector<bool> defaulted() const;
+
 
         void push_back( UDAValue );
         void push_back( int );
@@ -84,6 +89,8 @@ namespace Opm {
         void push_backDefault( double );
         void push_backDefault( std::string );
         // trying to access the data of a "dummy default item" will raise an exception
+
+        template<typename T>
         void push_backDummyDefault();
 
         type_tag getType() const;
@@ -95,7 +102,9 @@ namespace Opm {
         /*
           The comparison can be adjusted with the cmp_default and
           cmp_numeric flags. If cmp_default is set to true the
-          comparison will take the defaulted status of the items into
+          comparison will take the defaulted status of the items int
+          size_t size() const;
+
           account, i.e. two items will compare differently if one is
           defaulted and the other has the default value explicitly
           set. The default behaviour is cmp_default == false -
@@ -112,6 +121,7 @@ namespace Opm {
         bool operator!=(const DeckItem& other) const;
         static bool to_bool(std::string string_value);
     private:
+
         mutable std::vector< double > dval;
         std::vector< int > ival;
         std::vector< std::string > sval;
@@ -120,7 +130,7 @@ namespace Opm {
         type_tag type = type_tag::unknown;
 
         std::string item_name;
-        std::vector< bool > defaulted;
+        std::vector< value::status > value_status;
         /*
           To save space we mutate the dval object in place when asking for SI
           data; the current state of of the dval member is tracked with the
@@ -130,6 +140,8 @@ namespace Opm {
         std::vector< Dimension > active_dimensions;
         std::vector< Dimension > default_dimensions;
 
+        size_t __size() const;
+        void assert_index(std::size_t index) const;
         template< typename T > std::vector< T >& value_ref();
         template< typename T > const std::vector< T >& value_ref() const;
         template< typename T > void push( T );

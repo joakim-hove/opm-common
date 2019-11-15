@@ -71,6 +71,15 @@ const std::vector< UDAValue >& DeckItem::value_ref< UDAValue >() const {
 }
 
 
+std::vector<bool> DeckItem::defaulted() const {
+    std::vector<bool> def(this->value_status.size(), true);
+    for (std::size_t i=0; i < this->value_status.size(); i++)
+        def[i] = value::defaulted(this->value_status[i]);
+
+    return def;
+}
+
+
 DeckItem::DeckItem( const std::string& nm, int) :
     type( get_type< int >() ),
     item_name( nm )
@@ -105,49 +114,71 @@ const std::string& DeckItem::name() const {
 }
 
 bool DeckItem::defaultApplied( size_t index ) const {
-    return this->defaulted.at( index );
+    return value::defaulted(this->value_status.at(index));
 }
 
 bool DeckItem::hasValue( size_t index ) const {
-    switch( this->type ) {
+    /*switch( this->type ) {
         case type_tag::integer: return this->ival.size() > index;
         case type_tag::fdouble: return this->dval.size() > index;
         case type_tag::string:  return this->sval.size() > index;
         case type_tag::uda:     return this->uval.size() > index;
         default: throw std::logic_error( "DeckItem::hasValue: Type not set." );
     }
+    */
+    if (index >= this->value_status.size())
+        return false;
+    return value::has_value(this->value_status[index]);
 }
 
 size_t DeckItem::data_size() const {
-    switch( this->type ) {
+    /*switch( this->type ) {
         case type_tag::integer: return this->ival.size();
         case type_tag::fdouble: return this->dval.size();
         case type_tag::string:  return this->sval.size();
         case type_tag::uda:     return this->uval.size();
         default: throw std::logic_error( "DeckItem::size: Type not set." );
     }
+    */
+    std::size_t s = this->value_status.size();
+    /*if (s == 0)
+        return 0;
+
+    if (this->value_status.back() == status::invalid)
+        s -= 1;
+    */
+    return s;
 }
 
 
 size_t DeckItem::out_size() const {
     size_t data_size = this->data_size();
-    return std::max( data_size , this->defaulted.size() );
+    return std::max( data_size , this->value_status.size() );
 }
 
 
 template< typename T >
 T DeckItem::get( size_t index ) const {
+    this->assert_index(index);
     return this->value_ref< T >().at( index );
 }
 
+
+void DeckItem::assert_index(std::size_t index) const {
+    if (!value::has_value(this->value_status.at(index)))
+        throw std::invalid_argument("Tried to access invalid deck value for item: " + this->name());
+}
+
+
 template<>
 UDAValue DeckItem::get( size_t index ) const {
+    this->assert_index(index);
     auto value = this->value_ref<UDAValue>().at(index);
     if (this->active_dimensions.empty())
         return value;
 
     std::size_t dim_index = index % this->active_dimensions.size();
-    if (this->defaulted[index])
+    if (value::defaulted(this->value_status[index]))
         return UDAValue( value, this->default_dimensions[dim_index]);
     else
         return UDAValue( value, this->active_dimensions[dim_index]);
@@ -165,7 +196,7 @@ void DeckItem::push( T x ) {
     auto& val = this->value_ref< T >();
 
     val.push_back( std::move( x ) );
-    this->defaulted.push_back( false );
+    this->value_status.push_back( value::status::deck_value );
 }
 
 void DeckItem::push_back( int x ) {
@@ -189,7 +220,7 @@ void DeckItem::push( T x, size_t n ) {
     auto& val = this->value_ref< T >();
 
     val.insert( val.end(), n, x );
-    this->defaulted.insert( this->defaulted.end(), n, false );
+    this->value_status.insert( this->value_status.end(), n, value::status::deck_value );
 }
 
 void DeckItem::push_back( int x, size_t n ) {
@@ -211,12 +242,15 @@ void DeckItem::push_back( UDAValue x, size_t n ) {
 template< typename T >
 void DeckItem::push_default( T x ) {
     auto& val = this->value_ref< T >();
-    if( this->defaulted.size() != val.size() )
-        throw std::logic_error("To add a value to an item, "
-                "no 'pseudo defaults' can be added before");
-
     val.push_back( std::move( x ) );
-    this->defaulted.push_back( true );
+    this->value_status.push_back( value::status::valid_default );
+}
+
+template< typename T >
+void DeckItem::push_backDummyDefault( ) {
+    auto& val = this->value_ref< T >();
+    val.push_back( T( ) );
+    this->value_status.push_back( value::status::empty_default );
 }
 
 void DeckItem::push_backDefault( int x ) {
@@ -236,20 +270,15 @@ void DeckItem::push_backDefault( UDAValue x ) {
 }
 
 
-void DeckItem::push_backDummyDefault() {
-    if( !this->defaulted.empty() )
-        throw std::logic_error("Pseudo defaults can only be specified for empty items");
-
-    this->defaulted.push_back( true );
-}
-
 std::string DeckItem::getTrimmedString( size_t index ) const {
+    this->assert_index(index);
     return boost::algorithm::trim_copy(
                this->value_ref< std::string >().at( index )
            );
 }
 
 double DeckItem::getSIDouble( size_t index ) const {
+    this->assert_index(index);
     return this->getSIDoubleData().at( index );
 }
 
@@ -262,8 +291,13 @@ const std::vector<double>& DeckItem::getData() const {
     const auto dim_size = this->active_dimensions.size();
     for( size_t index = 0; index < data.size(); index++ ) {
         const auto dimIndex = index % dim_size;
-        const auto& dim = this->defaulted[index] ? this->default_dimensions[dimIndex] : this->active_dimensions[dimIndex];
-        data[ index ] = dim.convertSiToRaw( data[ index ] );
+        if (value::defaulted(this->value_status[index])) {
+            const auto& dim = this->default_dimensions[dimIndex];
+            data[index] = dim.convertSiToRaw(data[index]);
+        } else {
+            const auto& dim = this->active_dimensions[dimIndex];
+            data[index] = dim.convertSiToRaw(data[index]);
+        }
     }
     this->raw_data = true;
     return data;
@@ -289,8 +323,13 @@ const std::vector< double >& DeckItem::getSIDoubleData() const {
     const auto sz = data.size();
     for( size_t index = 0; index < sz; index++ ) {
         const auto dimIndex = index % dim_size;
-        const auto& dim = this->defaulted[index] ? this->default_dimensions[dimIndex] : this->active_dimensions[dimIndex];
-        data[ index ] = dim.convertRawToSi( data[ index ] );
+        if (value::defaulted(this->value_status[index])) {
+            const auto& dim = this->default_dimensions[dimIndex];
+            data[index] = dim.convertRawToSi(data[index]);
+        } else {
+            const auto& dim = this->active_dimensions[dimIndex];
+            data[index] = dim.convertRawToSi(data[index]);
+        }
     }
     this->raw_data = false;
     return data;
@@ -373,7 +412,7 @@ bool DeckItem::equal(const DeckItem& other, bool cmp_default, bool cmp_numeric) 
         return false;
 
     if (cmp_default)
-        if (this->defaulted != other.defaulted)
+        if (this->value_status != other.value_status)
             return false;
 
     switch( this->type ) {
@@ -472,4 +511,9 @@ template UDAValue DeckItem::get< UDAValue >( size_t ) const;
 template const std::vector< int >& DeckItem::getData< int >() const;
 template const std::vector< UDAValue >& DeckItem::getData< UDAValue >() const;
 template const std::vector< std::string >& DeckItem::getData< std::string >() const;
+
+template void DeckItem::push_backDummyDefault<int>( );
+template void DeckItem::push_backDummyDefault<double>( );
+template void DeckItem::push_backDummyDefault<std::string>( );
+template void DeckItem::push_backDummyDefault<UDAValue>( );
 }
