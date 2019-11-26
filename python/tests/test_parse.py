@@ -84,6 +84,42 @@ FIPNUM
          self.assertEqual(112, es.grid().ny)
          self.assertEqual(22, es.grid().nz)
 
+
+
+    def test_parse_PYINPUT(self):
+        deck_string = """
+START             -- 0
+31 AUG 1993 /
+RUNSPEC
+PYINPUT
+kw = context.DeckKeyword( context.parser['FIELD'] )
+context.deck.add(kw)
+<<<
+DIMENS
+2 2 1 /
+PYINPUT
+import numpy as np
+dx = np.array([0.25, 0.25, 0.25, 0.25])
+active_unit_system = context.deck.active_unit_system()
+default_unit_system = context.deck.default_unit_system()
+kw = context.DeckKeyword( context.parser['DX'], dx, active_unit_system, default_unit_system )
+context.deck.add(kw)
+<<<
+DY
+4*0.25 /
+        """
+        deck = Parser().parse_string(deck_string)
+        self.assertIn("START", deck)
+        self.assertIn("FIELD", deck)
+        self.assertIn("DIMES", deck)
+        self.assertIn("DX", deck)
+        self.assertIn("DY", deck)
+
+        dx = deck["DX"]
+        self.assertEqual(len(dx),1)
+        self.assertEqual(len(dx[0]),4)
+
+
 if __name__ == "__main__":
     unittest.main()
 
