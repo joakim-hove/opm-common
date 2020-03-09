@@ -3154,6 +3154,9 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             }
         }
 
+        if (not_equal(well1.isMultiSegment(), well2.isMultiSegment(), well_msg(well1.name(), "Is MSW")))
+            return false;
+
         if (well1.isMultiSegment()) {
             const auto& segments1 = well1.getSegments();
             const auto& segments2 = well2.getSegments();
