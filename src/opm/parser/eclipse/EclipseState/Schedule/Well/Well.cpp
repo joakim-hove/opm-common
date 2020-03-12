@@ -574,7 +574,7 @@ bool Well::updateStatus(Status well_state, bool update_connections) {
             new_connections->add(c);
         }
 
-        update = this->updateConnections(new_connections);
+        update = this->updateConnections(std::move(new_connections));
     }
 
     if (this->status != well_state) {
@@ -624,7 +624,7 @@ bool Well::updateAutoShutin(bool auto_shutin) {
 }
 
 
-bool Well::updateConnections(const std::shared_ptr<WellConnections> connections_arg) {
+bool Well::updateConnections(std::shared_ptr<WellConnections> connections_arg) {
     if( this->ordering  == Connection::Order::TRACK)
         connections_arg->orderTRACK( this->headI, this->headJ );
 
@@ -654,7 +654,7 @@ bool Well::handleCOMPSEGS(const DeckKeyword& keyword, const EclipseGrid& grid,
                            const ParseContext& parseContext, ErrorGuard& errors) {
     std::shared_ptr<WellConnections> new_connection_set( newConnectionsWithSegments(keyword, *this->connections, *this->segments , grid,
                                                                                     parseContext, errors) );
-    return this->updateConnections(new_connection_set);
+    return this->updateConnections(std::move(new_connection_set));
 }
 
 const std::string& Well::groupName() const {
@@ -869,7 +869,7 @@ bool Well::handleWELOPEN(const DeckRecord& record, Connection::State state_arg, 
             this->status = Status::SHUT;
     }
 
-    return this->updateConnections(new_connections);
+    return this->updateConnections(std::move(new_connections));
 }
 
 
@@ -899,7 +899,7 @@ bool Well::handleCOMPLUMP(const DeckRecord& record) {
         new_connections->add(c);
     }
 
-    return this->updateConnections(new_connections);
+    return this->updateConnections(std::move(new_connections));
 }
 
 
@@ -926,12 +926,12 @@ bool Well::handleWPIMULT(const DeckRecord& record) {
         new_connections->add(c);
     }
 
-    return this->updateConnections(new_connections);
+    return this->updateConnections(std::move(new_connections));
 }
 
 
-void Well::updateSegments(const std::shared_ptr<WellSegments> segments_arg) {
-    this->segments = segments_arg;
+void Well::updateSegments(std::shared_ptr<WellSegments> segments_arg) {
+    this->segments = std::move(segments_arg);
     this->ref_depth = this->segments->depthTopSegment();
 }
 
