@@ -487,11 +487,11 @@ std::pair<std::time_t, std::size_t> restart_info(const RestartIO::RstState * rst
 
     void Schedule::iterateScheduleSection(const ParseContext& parseContext , ErrorGuard& errors, const SCHEDULESection& section , const EclipseGrid& grid,
                                           const FieldPropsManager& fp) {
-        size_t currentStep;
         const auto& unit_system = section.unitSystem();
         std::vector<std::pair< const DeckKeyword* , size_t> > rftProperties;
         size_t keywordIdx = 0;
 
+        size_t currentStep;
         if (this->m_timeMap.skiprest())
             currentStep = 0;
         else
