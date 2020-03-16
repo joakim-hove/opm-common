@@ -1075,8 +1075,10 @@ void Parser::addParserKeyword( ParserKeyword&& parserKeyword ) {
     if (ptr->hasMatchRegex())
         m_wildCardKeywords[ name ] = ptr;
 
+    /*
     if (ptr->isCodeKeyword())
         this->code_keywords.emplace_back( ptr->getName(), ptr->codeEnd() );
+    */
 }
 
 

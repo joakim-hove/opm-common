@@ -39,8 +39,6 @@ namespace Opm {
 
     void ParserKeyword::setSizeType( ParserKeywordSizeEnum sizeType ) {
         m_keywordSizeType = sizeType;
-        if (sizeType == FIXED_CODE)
-            this->m_fixedSize = 1;
     }
 
     void ParserKeyword::setFixedSize( size_t keywordSize) {
@@ -375,7 +373,7 @@ void set_dimensions( ParserItem& item,
 
     void ParserKeyword::initCode(const Json::JsonObject& jsonConfig) {
         this->m_fixedSize = 1U;
-        this->m_keywordSizeType = FIXED_CODE;
+        this->m_keywordSizeType = FIXED;
 
         const Json::JsonObject codeConfig = jsonConfig.get_item("code");
         if (!codeConfig.has_item("end"))
@@ -592,7 +590,7 @@ void set_dimensions( ParserItem& item,
     }
 
     bool ParserKeyword::hasFixedSize() const {
-        return (this->m_keywordSizeType == FIXED || this->m_keywordSizeType == FIXED_CODE);
+        return (this->m_keywordSizeType == FIXED);
     }
 
     enum ParserKeywordSizeEnum ParserKeyword::getSizeType() const {
@@ -611,10 +609,6 @@ void set_dimensions( ParserItem& item,
         if( this->m_records.empty() ) return false;
 
         return this->m_records.front().isDataRecord();
-    }
-
-    bool ParserKeyword::isCodeKeyword() const {
-        return (this->m_keywordSizeType == FIXED_CODE);
     }
 
     bool ParserKeyword::isAlternatingKeyword() const {
@@ -702,7 +696,6 @@ void set_dimensions( ParserItem& item,
             ss << indent;
             switch (m_keywordSizeType) {
             case SLASH_TERMINATED:
-            case FIXED_CODE:
             case DOUBLE_SLASH_TERMINATED:
             case UNKNOWN:
                 ss << "setSizeType(" << sizeString << ");" << '\n';
@@ -748,9 +741,9 @@ void set_dimensions( ParserItem& item,
         if (hasMatchRegex())
             ss << indent << "setMatchRegex(\"" << m_matchRegexString << "\");" << '\n';
 
-        if (this->m_keywordSizeType == FIXED_CODE)
+        /*if (this->m_keywordSizeType == FIXED_CODE)
             ss << indent << "setCodeEnd(\"" << this->code_end << "\");" << '\n';
-
+        */
         {
             if (m_records.size() > 0 ) {
                 for( const auto& record : *this ) {
@@ -814,7 +807,6 @@ void set_dimensions( ParserItem& item,
             || this->code_end      != rhs.code_end
             || m_matchRegexString  != rhs.m_matchRegexString
             || m_keywordSizeType   != rhs.m_keywordSizeType
-            || isCodeKeyword()     != rhs.isCodeKeyword()
             || isDataKeyword()     != rhs.isDataKeyword()
             || m_isTableCollection != rhs.m_isTableCollection )
           return false;

@@ -39,9 +39,6 @@ namespace Opm {
         case UNKNOWN:
             return "UNKNOWN";
             break;
-        case FIXED_CODE:
-            return "FIXED_CODE";
-            break;
         case DOUBLE_SLASH_TERMINATED:
             return "DOUBLE_SLASH_TERMINATED";
             break;
@@ -61,8 +58,6 @@ namespace Opm {
                 return OTHER_KEYWORD_IN_DECK;
         else if (stringValue == "UNKNOWN")
             return UNKNOWN;
-        else if (stringValue == "FIXED_CODE")
-            return FIXED_CODE;
         else
             throw std::invalid_argument("String: " + stringValue + " can not be converted to enum value");
     }

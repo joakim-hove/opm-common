@@ -70,16 +70,17 @@ namespace {
         }
 
 
-        if (this->m_sizeType == Raw::CODE) {
+        /*if (this->m_sizeType == Raw::CODE) {
             if (size_arg != 1)
                 throw std::logic_error("Bug in opm/flow: Must have size_arg == 1 for CODE. Keyword: " + name + " at " + filename + ":" + std::to_string(lineNR));
             this->m_fixedSize = size_arg;
         }
+        */
     }
 
 
     RawKeyword::RawKeyword(const std::string& name, const std::string& filename, std::size_t lineNR, bool raw_string, Raw::KeywordSizeEnum sizeType) :
-        RawKeyword(name, filename, lineNR, raw_string, sizeType, sizeType == Raw::CODE ? 1 : 0)
+        RawKeyword(name, filename, lineNR, raw_string, sizeType, 0)
     {
         if (this->m_sizeType == Raw::FIXED || this->m_sizeType == Raw::TABLE_COLLECTION)
             throw std::logic_error("Internal error - wrong constructor has been used. Keyword: " + name + " at " + filename + ":" + std::to_string(lineNR));
@@ -122,7 +123,7 @@ namespace {
 
         this->m_records.push_back(std::move(record));
         if (m_records.size() == this->m_fixedSize) {
-            if( this->m_sizeType == Raw::FIXED || this->m_sizeType == Raw::CODE)
+            if( this->m_sizeType == Raw::FIXED)
                 this->m_isFinished = true;
         }
         return this->m_isFinished;
