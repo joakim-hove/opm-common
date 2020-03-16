@@ -1,1 +1,2 @@
-{"name" : "PYACTION", "sections" : ["SCHEDULE"], "code" : {"end" : "PYEND"}}
+{"name" : "PYACTION", "sections" : ["SCHEDULE"], "records" : [
+{"code" : {"end" : "PYEND"}}]}

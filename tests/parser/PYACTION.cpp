@@ -44,24 +44,26 @@ C = B * 20
 SCHEDULE
 
 PYACTION Her comes an ignored comment
+ACTION1 /
 )" + input_code + "PYEND";
 
     const std::string deck_string2 = R"(
 SCHEDULE
 
 PYACTION -- Comment
+ACTION2 /
 )" + input_code + "PYEND" + "\nGRID";
 
 
     Parser parser;
     {
         auto deck = parser.parseString(deck_string1);
-        const auto& parsed_code = deck.getKeyword("PYACTION").getRecord(0).getItem("code").get<std::string>(0);
+        const auto& parsed_code = deck.getKeyword("PYACTION").getRecord(1).getItem("code").get<std::string>(0);
         BOOST_CHECK_EQUAL(parsed_code, input_code);
     }
     {
         auto deck = parser.parseString(deck_string2);
-        const auto& parsed_code = deck.getKeyword("PYACTION").getRecord(0).getItem("code").get<std::string>(0);
+        const auto& parsed_code = deck.getKeyword("PYACTION").getRecord(1).getItem("code").get<std::string>(0);
         BOOST_CHECK_EQUAL(parsed_code, input_code);
         BOOST_CHECK( deck.hasKeyword("GRID"));
     }

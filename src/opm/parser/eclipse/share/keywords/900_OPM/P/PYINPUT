@@ -1,3 +1,6 @@
 {"name" : "PYINPUT",
  "sections" : ["RUNSPEC", "GRID", "EDIT", "PROPS", "REGIONS", "SOLUTION", "SUMMARY", "SCHEDULE"],
- "code" : {"end" : "PYEND"}}
+ "records" : [
+ {"code" : {"end" : "PYEND"}}]}
+
+

@@ -187,7 +187,7 @@ namespace Opm {
         initSectionNames(jsonConfig);
         initMatchRegex(jsonConfig);
 
-        if (jsonConfig.has_item("items") && (jsonConfig.has_item("records") || 
+        if (jsonConfig.has_item("items") && (jsonConfig.has_item("records") ||
                                              jsonConfig.has_item("alternating_records") ||
                                              jsonConfig.has_item("records_set") ))
             throw std::invalid_argument("Fatal error in " + getName() + " configuration. Can NOT have both records: and items:");
@@ -216,9 +216,6 @@ namespace Opm {
 
         if (jsonConfig.has_item("data"))
             initData(jsonConfig);
-
-        if (jsonConfig.has_item("code"))
-            this->initCode(jsonConfig);
 
         if (jsonConfig.has_item("description"))
             m_Description = jsonConfig.get_string("description");
@@ -332,7 +329,20 @@ namespace Opm {
         setMatchRegex(regexStringObject.as_string());
     }
 
+
+    void ParserKeyword::addCodeRecord(const Json::JsonObject& ) {
+        printf("Adding code record ... \n");
+    }
+
+
     void ParserKeyword::addItems(const Json::JsonObject& itemsConfig) {
+        if ( itemsConfig.is_object() ) {
+            if (itemsConfig.has_item("code")) {
+                this->addCodeRecord(itemsConfig);
+                return;
+            }
+        }
+
         if( !itemsConfig.is_array() )
             throw std::invalid_argument("The 'items' JSON item missing must be an array in keyword "+getName()+".");
 
@@ -737,7 +747,7 @@ void set_dimensions( ParserItem& item,
         if (double_records)
             ss << indent << "setDoubleRecordsKeyword(true);" << '\n';
 
-        // set the deck name match regex
+        // set the deck name match regede in 
         if (hasMatchRegex())
             ss << indent << "setMatchRegex(\"" << m_matchRegexString << "\");" << '\n';
 
