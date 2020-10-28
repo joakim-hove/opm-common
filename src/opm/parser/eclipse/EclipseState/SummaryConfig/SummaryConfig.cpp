@@ -1045,7 +1045,10 @@ inline void handleKW( SummaryConfig::keyword_list& list,
 
 // =====================================================================
 
-SummaryConfigNode::Type parseKeywordType(const std::string& keyword) {
+SummaryConfigNode::Type parseKeywordType(std::string keyword) {
+    if (is_completion(keyword))
+        keyword = keyword.substr(0, keyword.size() - 1);
+
     if (is_rate(keyword)) return SummaryConfigNode::Type::Rate;
     if (is_total(keyword)) return SummaryConfigNode::Type::Total;
     if (is_ratio(keyword)) return SummaryConfigNode::Type::Ratio;

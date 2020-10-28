@@ -1216,5 +1216,6 @@ W_1 2 /
 
     const auto& node = summary_config[0];
     BOOST_CHECK_EQUAL( node.extra_int(), 2 );
+    BOOST_CHECK(node.type() == EclIO::SummaryNode::Type::Rate);
 }
 
