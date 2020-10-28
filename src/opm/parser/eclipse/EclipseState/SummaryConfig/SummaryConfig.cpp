@@ -274,6 +274,26 @@ namespace {
         return (keyword[0] == 'A') && (keyword != "ALL");
     }
 
+    bool is_completion(const std::string& keyword)
+    {
+        if (keyword[0] != 'W')
+            return false;
+
+        if (keyword.back() != 'L')
+            return false;
+
+        if (is_liquid_phase(keyword))
+            return false;
+
+        if (is_udq(keyword))
+            return false;
+
+        if (keyword == "WMCTL")
+            return false;
+
+        return true;
+    }
+
     bool is_node_keyword(const std::string& keyword)
     {
         static const auto nodekw = keyword_set {
@@ -395,6 +415,49 @@ inline void keywordAquifer( SummaryConfig::keyword_list& list,
     }
 }
 
+
+std::string completion_name(const std::string& keyword, int completion) {
+    if (completion < 10)
+        return fmt::format("{}__{}", keyword, completion);
+
+    if (completion < 100)
+        return fmt::format("{}_{}", keyword, completion);
+
+    return fmt::format("{}{}", keyword, completion);
+}
+
+
+inline void keywordWL( SummaryConfig::keyword_list& list,
+                      const ParseContext& parseContext,
+                      ErrorGuard& errors,
+                      const DeckKeyword& keyword,
+                      const Schedule& schedule )
+{
+    for (const auto& record : keyword) {
+        const auto& pattern = record.getItem(0).get<std::string>(0);
+        const int completion = record.getItem(1).get<int>(0);
+        auto well_names = schedule.wellNames( pattern, schedule.size() - 1 );
+
+        // We add the completion number both the extra field which contains
+        // parsed data from the keywordname - i.e. WOPRL__8 and also to the
+        // numeric member which will be written to the NUMS field.
+        auto node = SummaryConfigNode{completion_name(keyword.name(), completion), SummaryConfigNode::Category::Well, keyword.location()};
+        node.parameterType( parseKeywordType(keyword.name()) );
+        node.isUserDefined( is_udq(keyword.name()) );
+        node.number(completion);
+        node.extra(completion);
+
+        if( well_names.empty() )
+            handleMissingWell( parseContext, errors, keyword.location(), pattern );
+
+        for (const auto& wname : well_names) {
+            const auto& well = schedule.getWellatEnd(wname);
+            if (well.hasCompletion(completion))
+                list.push_back( node.namedEntity( wname ) );
+        }
+    }
+}
+
 inline void keywordW( SummaryConfig::keyword_list& list,
                       const std::string& keyword,
                       KeywordLocation loc,
@@ -414,25 +477,8 @@ inline void keywordW( SummaryConfig::keyword_list& list,
                       ErrorGuard& errors,
                       const DeckKeyword& keyword,
                       const Schedule& schedule ) {
-    /*
-      Two step check for whether to discard this keyword as unsupported:
-
-      1. Completion quantity keywords are currently not supported.  These are
-      well summary keywords, apart from "WMCTL" and "WPIL", that end in 'L'.
-
-      2. If the keyword is a UDQ keyword there is no convention enforced to
-      the last character, and in that case it is treated as a normal well
-      keyword anyways.
-    */
-    if (keyword.name().back() == 'L') {
-        if (! (is_control_mode(keyword.name()) || is_liquid_phase(keyword.name()) || is_udq(keyword.name()))) {
-            const auto& location = keyword.location();
-            std::string msg = "Unsupported summary output keyword {}\n"
-                              "In {file} line {line}";
-            parseContext.handleError( ParseContext::SUMMARY_UNHANDLED_KEYWORD, msg, location, errors);
-            return;
-        }
-    }
+    if (is_completion(keyword.name()))
+        return keywordWL(list, parseContext, errors, keyword, schedule);
 
     auto param = SummaryConfigNode {
         keyword.name(), SummaryConfigNode::Category::Well, keyword.location()
@@ -1330,6 +1376,10 @@ bool SummaryConfig::hasKeyword( const std::string& keyword ) const {
 
 bool SummaryConfig::hasSummaryKey(const std::string& keyword ) const {
     return summary_keywords.find(keyword) != summary_keywords.end();
+}
+
+const SummaryConfigNode& SummaryConfig::operator[](std::size_t index) const {
+    return this->m_keywords[index];
 }
 
 

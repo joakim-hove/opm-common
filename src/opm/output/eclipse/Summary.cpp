@@ -509,6 +509,37 @@ inline quantity rate( const fn_args& args ) {
     return { sum, rate_unit< phase >() };
 }
 
+template< rt phase, bool injection = true >
+inline quantity ratel( const fn_args& args ) {
+    const quantity zero = { 0, rate_unit< phase >() };
+
+    const auto& well = args.schedule_wells.front();
+    const auto& name = well.name();
+    if( args.wells.count( name ) == 0 ) return zero;
+    const auto& well_data = args.wells.at( name );
+    if (well_data.current_control.isProducer == injection) return zero;
+
+    double sum = 0;
+    const auto& connections = well.getConnections( std::get<int>( *args.extra_data ));
+    for (const auto& conn_ptr : connections) {
+        const size_t global_index = conn_ptr->global_index();
+        const auto& conn_data = std::find_if(well_data.connections.begin(),
+                                             well_data.connections.end(),
+                                             [global_index] (const Opm::data::Connection cdata)
+                                             {
+                                                 return cdata.index == global_index;
+                                             });
+        if (conn_data == well_data.connections.end()) return zero;
+        const double eff_fac = 1;
+        sum += conn_data->rates.get( phase, 0.0 ) * eff_fac;
+    }
+    if( !injection ) sum *= -1;
+
+    if (phase == rt::polymer || phase == rt::brine) return { sum, measure::mass_rate };
+    return { sum, rate_unit< phase >() };
+}
+
+
 template< bool injection >
 inline quantity flowing( const fn_args& args ) {
     const auto& wells = args.wells;
@@ -1036,6 +1067,7 @@ static const std::unordered_map< std::string, ofun > funs = {
 
     { "WWPR", rate< rt::wat, producer > },
     { "WOPR", rate< rt::oil, producer > },
+    { "WOPRL",ratel< rt::oil, producer > },
     { "WGPR", rate< rt::gas, producer > },
     { "WEPR", rate< rt::energy, producer > },
     { "WGLIR", glir},
@@ -2236,13 +2268,27 @@ namespace Evaluator {
     bool Factory::isFunctionRelation()
     {
         auto pos = funs.find(this->node_->keyword);
-        if (pos == funs.end())
-            return false;
+        if (pos != funs.end()) {
+            // 'node_' represents a functional relation.
+            // Capture evaluation function and return true.
+            this->paramFunction_ = pos->second;
+            return true;
+        }
 
-        // 'node_' represents a functional relation.
-        // Capture evaluation function and return true.
-        this->paramFunction_ = pos->second;
-        return true;
+        auto keyword = this->node_->keyword;
+        auto dash_pos = keyword.find("_");
+        if (dash_pos != std::string::npos)
+            keyword = keyword.substr(0, dash_pos);
+
+        pos = funs.find(keyword);
+        if (pos != funs.end()) {
+            // 'node_' represents a functional relation.
+            // Capture evaluation function and return true.
+            this->paramFunction_ = pos->second;
+            return true;
+        }
+
+        return false;
     }
 
     bool Factory::isUserDefined()
@@ -2304,7 +2350,7 @@ void reportUnsupportedKeywords(std::vector<Opm::SummaryConfigNode> keywords)
     for (auto node = keywords.begin(); node != uend; ++node) {
         const auto& location = node->location();
         Opm::OpmLog::warning(Opm::OpmInputError::format("Unhandled summary keyword {keyword}\n"
-                                                          "In {file} line {line}", location));
+                                                        "In {file} line {line}", location));
     }
 }
 
