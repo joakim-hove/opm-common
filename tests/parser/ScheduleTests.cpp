@@ -2261,6 +2261,10 @@ BOOST_AUTO_TEST_CASE( complump ) {
         else
             BOOST_CHECK_EQUAL(pair.second.size(), 1U);
     }
+
+    const auto& w0 = schedule.getWell("W1", 0);
+    BOOST_CHECK(w0.hasCompletion(1));
+    BOOST_CHECK(!w0.hasCompletion(2));
 }
 
 

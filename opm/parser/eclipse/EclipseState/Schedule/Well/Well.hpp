@@ -546,7 +546,7 @@ public:
       keyword.
     */
     std::map<int, std::vector<Connection>> getCompletions() const;
-
+    bool hasCompletion(int completion) const;
     bool updatePrediction(bool prediction_mode);
     bool updateAutoShutin(bool auto_shutin);
     bool updateCrossFlow(bool allow_cross_flow);
