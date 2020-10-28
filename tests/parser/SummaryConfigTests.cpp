@@ -1191,7 +1191,7 @@ ROPT_REG
     BOOST_CHECK(summary_config.match("RPR*"));
     for (const auto& node : summary_config) {
         if (node.category() == EclIO::SummaryNode::Category::Region)
-            BOOST_CHECK_EQUAL( node.fip_region(), "FIPREG" );
+            BOOST_CHECK_EQUAL( node.extra_string(), "FIPREG" );
     }
 
     const auto& fip_regions = summary_config.fip_regions();

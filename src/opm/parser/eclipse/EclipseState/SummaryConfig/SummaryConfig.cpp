@@ -648,7 +648,7 @@ inline void keywordR( SummaryConfig::keyword_list& list,
     auto param = SummaryConfigNode {
         keyword, SummaryConfigNode::Category::Region, deck_keyword.location()
     }
-    .fip_region( region_name )
+    .extra( region_name )
     .isUserDefined( is_udq(keyword) );
 
     for( const int region : regions ) {
@@ -1051,9 +1051,15 @@ SummaryConfigNode SummaryConfigNode::serializeObject()
     return result;
 }
 
-SummaryConfigNode& SummaryConfigNode::fip_region(const std::string& fip_region)
+SummaryConfigNode& SummaryConfigNode::extra(const std::string& string_data)
 {
-    this->fip_region_ = fip_region;
+    this->extra_data = string_data;
+    return *this;
+}
+
+SummaryConfigNode& SummaryConfigNode::extra(int int_data)
+{
+    this->extra_data = int_data;
     return *this;
 }
 
@@ -1380,9 +1386,10 @@ bool SummaryConfig::require3DField( const std::string& keyword ) const {
 std::set<std::string> SummaryConfig::fip_regions() const {
     std::set<std::string> reg_set;
     for (const auto& node : this->m_keywords) {
-        const auto& fip_region = node.fip_region();
-        if (fip_region.size() > 0)
+        if (node.category() == EclIO::SummaryNode::Category::Region) {
+            const auto& fip_region = node.extra_string();
             reg_set.insert( fip_region );
+        }
     }
     return reg_set;
 }

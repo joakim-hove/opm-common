@@ -24,6 +24,7 @@
 #include <optional>
 #include <string>
 #include <unordered_set>
+#include <variant>
 
 namespace Opm { namespace EclIO {
 
@@ -56,7 +57,13 @@ struct SummaryNode {
     Type        type;
     std::string wgname;
     int         number;
-    std::string fip_region;
+
+    // Some keywords can append extra qualifying data characters 5-7, i.e. the
+    // region keywords RPR__REG will have the pressure in FIP region defined as
+    // 'FIPREG' and WOPRL__8 will have the oil production rate in completion 8.
+    // The extra_data will contain this data as a std::variant<std::string,int>
+    // - i.e. "REG" and 8 respectively in the two cases.
+    std::optional<std::variant<std::string, int>> extra_data;
 
     constexpr static int default_number { std::numeric_limits<int>::min() };
 

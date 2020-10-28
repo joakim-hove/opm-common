@@ -22,9 +22,12 @@
 
 #include <array>
 #include <limits>
+#include <optional>
 #include <set>
 #include <string>
+#include <variant>
 #include <vector>
+
 
 #include <opm/io/eclipse/SummaryNode.hpp>
 #include <opm/common/OpmLog/KeywordLocation.hpp>
@@ -51,7 +54,8 @@ namespace Opm {
         SummaryConfigNode& namedEntity(std::string name);
         SummaryConfigNode& number(const int num);
         SummaryConfigNode& isUserDefined(const bool userDefined);
-        SummaryConfigNode& fip_region(const std::string& fip_region);
+        SummaryConfigNode& extra(const std::string& string_data);
+        SummaryConfigNode& extra(int int_data);
 
         const std::string& keyword() const { return this->keyword_; }
         Category category() const { return this->category_; }
@@ -59,13 +63,14 @@ namespace Opm {
         const std::string& namedEntity() const { return this->name_; }
         int number() const { return this->number_; }
         bool isUserDefined() const { return this->userDefined_; }
-        const std::string& fip_region() const { return this->fip_region_; }
+        const std::string& extra_string() const { return std::get<std::string>( *this->extra_data ); }
+        int extra_int() const { return std::get<int>( *this->extra_data ); }
 
         std::string uniqueNodeKey() const;
         const KeywordLocation& location( ) const { return this->loc; }
 
         operator Opm::EclIO::SummaryNode() const {
-            return { keyword_, category_, type_, name_, number_, fip_region_ };
+            return { keyword_, category_, type_, name_, number_, extra_data };
         }
 
         template<class Serializer>
@@ -77,7 +82,7 @@ namespace Opm {
             serializer(type_);
             serializer(name_);
             serializer(number_);
-            serializer(fip_region_);
+            serializer(extra_data);
             serializer(userDefined_);
         }
 
@@ -88,7 +93,7 @@ namespace Opm {
         Type        type_{ Type::Undefined };
         std::string name_{};
         int         number_{std::numeric_limits<int>::min()};
-        std::string fip_region_;
+        std::optional<std::variant<std::string, int>> extra_data;
         bool        userDefined_{false};
     };
 

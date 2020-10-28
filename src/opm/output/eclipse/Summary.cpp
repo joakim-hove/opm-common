@@ -398,7 +398,7 @@ struct fn_args {
     double duration;
     const int sim_step;
     int  num;
-    const std::string fip_region;
+    const std::optional<std::variant<std::string, int>> extra_data;
     const Opm::SummaryState& st;
     const Opm::data::Wells& wells;
     const Opm::data::GroupAndNetworkValues& grp_nwrk;
@@ -783,7 +783,7 @@ inline quantity duration( const fn_args& args ) {
 template<rt phase , bool injection>
 quantity region_rate( const fn_args& args ) {
     double sum = 0;
-    const auto& well_connections = args.regionCache.connections( args.fip_region, args.num );
+    const auto& well_connections = args.regionCache.connections( std::get<std::string>(*args.extra_data), args.num );
 
     for (const auto& pair : well_connections) {
 
@@ -1522,7 +1522,7 @@ inline std::vector<Opm::Well> find_wells( const Opm::Schedule& schedule,
 
         const auto region = node.number;
 
-        for ( const auto& connection : regionCache.connections( node.fip_region, region ) ){
+        for ( const auto& connection : regionCache.connections( std::get<std::string>(*node.extra_data), region ) ){
             const auto& w_name = connection.first;
             if (schedule.hasWell(w_name, sim_step)) {
                 const auto& well = schedule.getWell( w_name, sim_step );
@@ -1726,7 +1726,7 @@ namespace Evaluator {
             const fn_args args {
                 wells, this->group_name(), stepSize, static_cast<int>(sim_step),
                 std::max(0, this->node_.number),
-                this->node_.fip_region,
+                this->node_.extra_data,
                 st, simRes.wellSol, simRes.grpNwrkSol, input.reg, input.grid,
                 std::move(efac.factors)
             };
@@ -2256,7 +2256,7 @@ namespace Evaluator {
 
         const fn_args args {
             {}, "", 0.0, 0, std::max(0, this->node_->number),
-            this->node_->fip_region,
+            this->node_->extra_data,
             this->st_, {}, {}, reg, this->grid_,
             {}
         };
