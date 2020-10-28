@@ -509,6 +509,7 @@ public:
     Status getStatus() const;
     const std::string& groupName() const;
     Phase getPreferredPhase() const;
+    const std::vector<const Connection *> getConnections(int completion) const;
     const WellConnections& getConnections() const;
     const WellSegments& getSegments() const;
 
