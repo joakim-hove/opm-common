@@ -520,6 +520,7 @@ inline quantity ratel( const fn_args& args ) {
     if (well_data.current_control.isProducer == injection) return zero;
 
     double sum = 0;
+    double eff_fac = efac( args.eff_factors, name );
     const auto& connections = well.getConnections( std::get<int>( *args.extra_data ));
     for (const auto& conn_ptr : connections) {
         const size_t global_index = conn_ptr->global_index();
@@ -530,7 +531,6 @@ inline quantity ratel( const fn_args& args ) {
                                                  return cdata.index == global_index;
                                              });
         if (conn_data == well_data.connections.end()) return zero;
-        const double eff_fac = 1;
         sum += conn_data->rates.get( phase, 0.0 ) * eff_fac;
     }
     if( !injection ) sum *= -1;
