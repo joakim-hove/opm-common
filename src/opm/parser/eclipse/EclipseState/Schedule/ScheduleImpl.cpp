@@ -61,7 +61,6 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQConfig.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQActive.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/RPTConfig.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/Schedule.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/TimeMap.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Tuning.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Network/Node.hpp>
@@ -74,6 +73,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/WellBrineProperties.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/WellConnections.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/SummaryState.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/ScheduleImpl.hpp>
 #include <opm/parser/eclipse/Units/Dimension.hpp>
 #include <opm/parser/eclipse/Units/UnitSystem.hpp>
 #include <opm/parser/eclipse/Units/Units.hpp>
@@ -99,7 +99,7 @@ namespace {
     }
 }
 
-    Schedule::Schedule( const Deck& deck,
+    ScheduleImpl::Schedule( const Deck& deck,
                         const EclipseGrid& grid,
                         const FieldPropsManager& fp,
                         const Runspec &runspec,
@@ -168,7 +168,7 @@ namespace {
 
 
     template <typename T>
-    Schedule::Schedule( const Deck& deck,
+    ScheduleImpl::Schedule( const Deck& deck,
                         const EclipseGrid& grid,
                         const FieldPropsManager& fp,
                         const Runspec &runspec,
@@ -180,7 +180,7 @@ namespace {
     {}
 
 
-    Schedule::Schedule( const Deck& deck,
+    ScheduleImpl::Schedule( const Deck& deck,
                         const EclipseGrid& grid,
                         const FieldPropsManager& fp,
                         const Runspec &runspec,
@@ -190,7 +190,7 @@ namespace {
     {}
 
 
-    Schedule::Schedule(const Deck& deck, const EclipseState& es, const ParseContext& parse_context, ErrorGuard& errors, std::shared_ptr<const Python> python, const RestartIO::RstState * rst) :
+    ScheduleImpl::Schedule(const Deck& deck, const EclipseState& es, const ParseContext& parse_context, ErrorGuard& errors, std::shared_ptr<const Python> python, const RestartIO::RstState * rst) :
         Schedule(deck,
                  es.getInputGrid(),
                  es.fieldProps(),
@@ -203,7 +203,7 @@ namespace {
 
 
     template <typename T>
-    Schedule::Schedule(const Deck& deck, const EclipseState& es, const ParseContext& parse_context, T&& errors, std::shared_ptr<const Python> python, const RestartIO::RstState * rst) :
+    ScheduleImpl::Schedule(const Deck& deck, const EclipseState& es, const ParseContext& parse_context, T&& errors, std::shared_ptr<const Python> python, const RestartIO::RstState * rst) :
         Schedule(deck,
                  es.getInputGrid(),
                  es.fieldProps(),
@@ -215,12 +215,12 @@ namespace {
     {}
 
 
-    Schedule::Schedule(const Deck& deck, const EclipseState& es, std::shared_ptr<const Python> python, const RestartIO::RstState * rst) :
+    ScheduleImpl::Schedule(const Deck& deck, const EclipseState& es, std::shared_ptr<const Python> python, const RestartIO::RstState * rst) :
         Schedule(deck, es, ParseContext(), ErrorGuard(), python, rst)
     {}
 
 
-    Schedule::Schedule(const Deck& deck, const EclipseState& es, const RestartIO::RstState * rst) :
+    ScheduleImpl::Schedule(const Deck& deck, const EclipseState& es, const RestartIO::RstState * rst) :
         Schedule(deck, es, ParseContext(), ErrorGuard(), std::make_shared<const Python>(), rst)
     {}
 
@@ -232,7 +232,7 @@ namespace {
       simulator will instantiate and manage a Schedule object to unpack into, so
       the instance created here is only for testing.
     */
-    Schedule Schedule::serializeObject()
+    Schedule ScheduleImpl::serializeObject()
     {
         auto python = std::make_shared<Python>(Python::Enable::OFF);
         Schedule result(python);
@@ -268,20 +268,20 @@ namespace {
         return result;
     }
 
-    std::time_t Schedule::getStartTime() const {
+    std::time_t ScheduleImpl::getStartTime() const {
         return this->posixStartTime( );
     }
 
-    time_t Schedule::posixStartTime() const {
+    time_t ScheduleImpl::posixStartTime() const {
         return m_timeMap.getStartTime( 0 );
     }
 
-    time_t Schedule::posixEndTime() const {
+    time_t ScheduleImpl::posixEndTime() const {
         return this->m_timeMap.getEndTime();
     }
 
 
-    void Schedule::handleKeyword(std::shared_ptr<const Python> python,
+    void ScheduleImpl::handleKeyword(std::shared_ptr<const Python> python,
                                  const std::string& input_path,
                                  std::size_t currentStep,
                                  const SCHEDULESection& section,
@@ -363,7 +363,7 @@ private:
 
 }
 
-    void Schedule::iterateScheduleSection(std::shared_ptr<const Opm::Python> python, const std::string& input_path, const ParseContext& parseContext , ErrorGuard& errors, const SCHEDULESection& section , const EclipseGrid& grid,
+    void ScheduleImpl::iterateScheduleSection(std::shared_ptr<const Opm::Python> python, const std::string& input_path, const ParseContext& parseContext , ErrorGuard& errors, const SCHEDULESection& section , const EclipseGrid& grid,
                                           const FieldPropsManager& fp) {
 
         std::vector<std::pair< const DeckKeyword* , std::size_t> > rftProperties;
@@ -404,12 +404,12 @@ private:
             current_file = location.filename;
             logger.info(fmt::format("\nProcessing dynamic information from\n{} line {}", current_file, location.lineno));
             if (restart_skip)
-                logger.info(fmt::format("This is a restarted run - skipping until report step {} at {}", time_map.restart_offset(), Schedule::formatDate(time_map.restart_time())));
+                logger.info(fmt::format("This is a restarted run - skipping until report step {} at {}", time_map.restart_offset(), ScheduleImpl::formatDate(time_map.restart_time())));
 
             logger(fmt::format("Initializing report step {}/{} at {} {} {} line {}",
                                currentStep + 1,
                                this->size(),
-                               Schedule::formatDate(this->getStartTime()),
+                               ScheduleImpl::formatDate(this->getStartTime()),
                                convert_time(time_map.getTimePassedUntil(currentStep)),
                                time_unit,
                                location.lineno));
@@ -434,13 +434,13 @@ private:
                             restart_skip = false;
                             currentStep = time_map.restart_offset();
                             logger.restart();
-                            logger(fmt::format("Found restart date: {} report: {}", Schedule::formatDate(deck_time), time_map.restart_offset()));
+                            logger(fmt::format("Found restart date: {} report: {}", ScheduleImpl::formatDate(deck_time), time_map.restart_offset()));
                         } else
-                            logger(fmt::format("Skipping DATES keyword {}", Schedule::formatDate(deck_time)));
+                            logger(fmt::format("Skipping DATES keyword {}", ScheduleImpl::formatDate(deck_time)));
                     } else {
                         currentStep += 1;
                         if (currentStep < this->size()) {
-                            const auto& start_date = Schedule::formatDate(this->simTime(currentStep));
+                            const auto& start_date = ScheduleImpl::formatDate(this->simTime(currentStep));
                             const auto& days = convert_time(this->stepLength(currentStep - 1));
                             const auto& days_total = convert_time(time_map.getTimePassedUntil(currentStep));
                             logger.complete_step(fmt::format("Complete report step {0} ({1} {2}) at {3} ({4} {2})", currentStep,  days, time_unit, start_date, days_total));
@@ -467,7 +467,7 @@ private:
                 else {
                     for (const auto& tstep : keyword.getRecord(0).getItem(0).getSIDoubleData()) {
                         currentStep += 1;
-                        const auto& end_date = Schedule::formatDate( this->simTime(currentStep) );
+                        const auto& end_date = ScheduleImpl::formatDate( this->simTime(currentStep) );
                         logger.complete_step(fmt::format("TSTEP {:4} {} {} -> {}", currentStep, convert_time(tstep), time_unit, end_date));
                     }
                 }
@@ -534,16 +534,16 @@ private:
         checkUnhandledKeywords(section);
     }
 
-    void Schedule::addACTIONX(const Action::ActionX& action, std::size_t currentStep) {
+    void ScheduleImpl::addACTIONX(const Action::ActionX& action, std::size_t currentStep) {
         auto new_actions = std::make_shared<Action::Actions>( this->actions(currentStep) );
         new_actions->add(action);
         this->m_actions.update(currentStep, new_actions);
     }
 
-    void Schedule::checkUnhandledKeywords(const SCHEDULESection& /*section*/) const {
+    void ScheduleImpl::checkUnhandledKeywords(const SCHEDULESection& /*section*/) const {
     }
 
-    void Schedule::handlePYACTION(std::shared_ptr<const Python> python, const std::string& input_path, const DeckKeyword& keyword, std::size_t currentStep) {
+    void ScheduleImpl::handlePYACTION(std::shared_ptr<const Python> python, const std::string& input_path, const DeckKeyword& keyword, std::size_t currentStep) {
         if (!python->enabled()) {
             //Must have a real Python instance here - to ensure that IMPORT works
             const auto& loc = keyword.location();
@@ -566,25 +566,25 @@ private:
         this->m_actions.update(currentStep, new_actions);
     }
 
-    void Schedule::applyEXIT(const DeckKeyword& keyword, std::size_t report_step) {
+    void ScheduleImpl::applyEXIT(const DeckKeyword& keyword, std::size_t report_step) {
         int status = keyword.getRecord(0).getItem<ParserKeywords::EXIT::STATUS_CODE>().get<int>(0);
         OpmLog::info("Simulation exit with status: " + std::to_string(status) + " requested as part of ACTIONX at report_step: " + std::to_string(report_step));
         this->exit_status = status;
     }
 
-    void Schedule::shut_well(const std::string& well_name, std::size_t report_step) {
+    void ScheduleImpl::shut_well(const std::string& well_name, std::size_t report_step) {
         this->updateWellStatus(well_name, report_step, true, Well::Status::SHUT);
     }
 
-    void Schedule::open_well(const std::string& well_name, std::size_t report_step) {
+    void ScheduleImpl::open_well(const std::string& well_name, std::size_t report_step) {
         this->updateWellStatus(well_name, report_step, true, Well::Status::OPEN);
     }
 
-    void Schedule::stop_well(const std::string& well_name, std::size_t report_step) {
+    void ScheduleImpl::stop_well(const std::string& well_name, std::size_t report_step) {
         this->updateWellStatus(well_name, report_step, true, Well::Status::STOP);
     }
 
-    void Schedule::updateWell(std::shared_ptr<Well> well, std::size_t reportStep) {
+    void ScheduleImpl::updateWell(std::shared_ptr<Well> well, std::size_t reportStep) {
         auto& dynamic_state = this->wells_static.at(well->name());
         dynamic_state.update_equal(reportStep, std::move(well));
     }
@@ -594,7 +594,7 @@ private:
       Function is quite dangerous - because if this is called while holding a
       Well pointer that will go stale and needs to be refreshed.
     */
-    bool Schedule::updateWellStatus( const std::string& well_name, std::size_t reportStep , bool runtime, Well::Status status, std::optional<KeywordLocation> location) {
+    bool ScheduleImpl::updateWellStatus( const std::string& well_name, std::size_t reportStep , bool runtime, Well::Status status, std::optional<KeywordLocation> location) {
         auto& dynamic_state = this->wells_static.at(well_name);
         auto well2 = std::make_shared<Well>(*dynamic_state[reportStep]);
         if (well2->getConnections().empty() && status == Well::Status::OPEN) {
@@ -633,7 +633,7 @@ private:
     }
 
 
-    bool Schedule::updateWPAVE(const std::string& wname, std::size_t report_step, const PAvg& pavg) {
+    bool ScheduleImpl::updateWPAVE(const std::string& wname, std::size_t report_step, const PAvg& pavg) {
         const auto& well = this->getWell(wname, report_step);
         if (well.pavg() != pavg) {
             auto& dynamic_state = this->wells_static.at(wname);
@@ -649,7 +649,7 @@ private:
     /*
       This routine is called when UDQ keywords is added in an ACTIONX block.
     */
-    void Schedule::updateUDQ(const DeckKeyword& keyword, std::size_t current_step) {
+    void ScheduleImpl::updateUDQ(const DeckKeyword& keyword, std::size_t current_step) {
         const auto& current = *this->udq_config.get(current_step);
         std::shared_ptr<UDQConfig> new_udq = std::make_shared<UDQConfig>(current);
         for (const auto& record : keyword)
@@ -666,7 +666,7 @@ private:
         }
     }
 
-     void Schedule::applyWELOPEN(const DeckKeyword& keyword, std::size_t currentStep, bool runtime, const ParseContext& parseContext, ErrorGuard& errors, const std::vector<std::string>& matching_wells) {
+     void ScheduleImpl::applyWELOPEN(const DeckKeyword& keyword, std::size_t currentStep, bool runtime, const ParseContext& parseContext, ErrorGuard& errors, const std::vector<std::string>& matching_wells) {
 
         auto conn_defaulted = []( const DeckRecord& rec ) {
             auto defaulted = []( const DeckItem& item ) {
@@ -743,7 +743,7 @@ private:
         }
     }
 
-    void Schedule::applyMESSAGES(const DeckKeyword& keyword, std::size_t currentStep) {
+    void ScheduleImpl::applyMESSAGES(const DeckKeyword& keyword, std::size_t currentStep) {
         const auto& record = keyword.getRecord(0);
         using  set_limit_fptr = decltype( std::mem_fn( &MessageLimits::setMessagePrintLimit ) );
         static const std::pair<std::string , set_limit_fptr> setters[] = {
@@ -771,7 +771,7 @@ private:
         }
     }
 
-    void Schedule::applyWRFT(const DeckKeyword& keyword, std::size_t currentStep) {
+    void ScheduleImpl::applyWRFT(const DeckKeyword& keyword, std::size_t currentStep) {
         /* Rule for handling RFT: Request current RFT data output for specified wells, plus output when
          * any well is subsequently opened
          */
@@ -788,7 +788,7 @@ private:
         this->rft_config.setWellOpenRFT(currentStep);
     }
 
-    void Schedule::applyWRFTPLT(const DeckKeyword& keyword, std::size_t currentStep) {
+    void ScheduleImpl::applyWRFTPLT(const DeckKeyword& keyword, std::size_t currentStep) {
         for (const auto& record : keyword) {
             const std::string& wellNamePattern = record.getItem("WELL").getTrimmedString(0);
 
@@ -802,21 +802,21 @@ private:
         }
     }
 
-    const RFTConfig& Schedule::rftConfig() const {
+    const RFTConfig& ScheduleImpl::rftConfig() const {
         return this->rft_config;
     }
 
 
-    void Schedule::invalidNamePattern( const std::string& namePattern,  std::size_t, const ParseContext& parseContext, ErrorGuard& errors, const DeckKeyword& keyword ) const {
+    void ScheduleImpl::invalidNamePattern( const std::string& namePattern,  std::size_t, const ParseContext& parseContext, ErrorGuard& errors, const DeckKeyword& keyword ) const {
         std::string msg_fmt = fmt::format("No wells/groups match the pattern: \'{}\'", namePattern);
         parseContext.handleError( ParseContext::SCHEDULE_INVALID_NAME, msg_fmt, keyword.location(), errors );
     }
 
-    const TimeMap& Schedule::getTimeMap() const {
+    const TimeMap& ScheduleImpl::getTimeMap() const {
         return this->m_timeMap;
     }
 
-    GTNode Schedule::groupTree(const std::string& root_node, std::size_t report_step, std::size_t level, const std::optional<std::string>& parent_name) const {
+    GTNode ScheduleImpl::groupTree(const std::string& root_node, std::size_t report_step, std::size_t level, const std::optional<std::string>& parent_name) const {
         auto root_group = this->getGroup(root_node, report_step);
         GTNode tree(root_group, level, parent_name);
 
@@ -833,15 +833,15 @@ private:
         return tree;
     }
 
-    GTNode Schedule::groupTree(const std::string& root_node, std::size_t report_step) const {
+    GTNode ScheduleImpl::groupTree(const std::string& root_node, std::size_t report_step) const {
         return this->groupTree(root_node, report_step, 0, {});
     }
 
-    GTNode Schedule::groupTree(std::size_t report_step) const {
+    GTNode ScheduleImpl::groupTree(std::size_t report_step) const {
         return this->groupTree("FIELD", report_step);
     }
 
-    void Schedule::addWell(const std::string& wellName,
+    void ScheduleImpl::addWell(const std::string& wellName,
                            const DeckRecord& record,
                            std::size_t timeStep,
                            Connection::Order wellConnectionOrder)
@@ -900,7 +900,7 @@ private:
                       wellConnectionOrder);
     }
 
-    void Schedule::addWell(Well well, std::size_t report_step) {
+    void ScheduleImpl::addWell(Well well, std::size_t report_step) {
         const std::string wname = well.name();
 
         m_events.addEvent( ScheduleEvents::NEW_WELL , report_step );
@@ -913,7 +913,7 @@ private:
         dynamic_well_state.update(report_step, std::make_shared<Well>(std::move(well)));
     }
 
-    void Schedule::addWell(const std::string& wellName,
+    void ScheduleImpl::addWell(const std::string& wellName,
                            const std::string& group,
                            int headI,
                            int headJ,
@@ -951,20 +951,20 @@ private:
     }
 
 
-    std::size_t Schedule::numWells() const {
+    std::size_t ScheduleImpl::numWells() const {
         return wells_static.size();
     }
 
-    std::size_t Schedule::numWells(std::size_t timestep) const {
+    std::size_t ScheduleImpl::numWells(std::size_t timestep) const {
         auto well_names = this->wellNames(timestep);
         return well_names.size();
     }
 
-    bool Schedule::hasWell(const std::string& wellName) const {
+    bool ScheduleImpl::hasWell(const std::string& wellName) const {
         return wells_static.count( wellName ) > 0;
     }
 
-    bool Schedule::hasWell(const std::string& wellName, std::size_t timeStep) const {
+    bool ScheduleImpl::hasWell(const std::string& wellName, std::size_t timeStep) const {
         if (this->wells_static.count(wellName) == 0)
             return false;
 
@@ -972,7 +972,7 @@ private:
         return well.hasBeenDefined(timeStep);
     }
 
-    std::vector< const Group* > Schedule::getChildGroups2(const std::string& group_name, std::size_t timeStep) const {
+    std::vector< const Group* > ScheduleImpl::getChildGroups2(const std::string& group_name, std::size_t timeStep) const {
         if (!hasGroup(group_name))
             throw std::invalid_argument("No such group: '" + group_name + "'");
 
@@ -988,7 +988,7 @@ private:
         return child_groups;
     }
 
-    std::vector< Well > Schedule::getChildWells2(const std::string& group_name, std::size_t timeStep) const {
+    std::vector< Well > ScheduleImpl::getChildWells2(const std::string& group_name, std::size_t timeStep) const {
         if (!hasGroup(group_name))
             throw std::invalid_argument("No such group: '" + group_name + "'");
 
@@ -1019,7 +1019,7 @@ private:
       *structurally* in the last report_step; wells where only production
       settings have changed will not be included.
     */
-    std::vector<std::string> Schedule::changed_wells(std::size_t report_step) const {
+    std::vector<std::string> ScheduleImpl::changed_wells(std::size_t report_step) const {
         std::vector<std::string> wells;
 
         for (const auto& dynamic_pair : this->wells_static) {
@@ -1043,7 +1043,7 @@ private:
     }
 
 
-    std::vector<Well> Schedule::getWells(std::size_t timeStep) const {
+    std::vector<Well> ScheduleImpl::getWells(std::size_t timeStep) const {
         std::vector<Well> wells;
         if (timeStep >= this->m_timeMap.size())
             throw std::invalid_argument("timeStep argument beyond the length of the simulation");
@@ -1056,15 +1056,15 @@ private:
         return wells;
     }
 
-    std::vector<Well> Schedule::getWellsatEnd() const {
+    std::vector<Well> ScheduleImpl::getWellsatEnd() const {
         return this->getWells(this->m_timeMap.size() - 1);
     }
 
-    const Well& Schedule::getWellatEnd(const std::string& well_name) const {
+    const Well& ScheduleImpl::getWellatEnd(const std::string& well_name) const {
         return this->getWell(well_name, this->m_timeMap.size() - 1);
     }
 
-    const Well& Schedule::getWell(const std::string& wellName, std::size_t timeStep) const {
+    const Well& ScheduleImpl::getWell(const std::string& wellName, std::size_t timeStep) const {
         if (this->wells_static.count(wellName) == 0)
             throw std::invalid_argument("No such well: " + wellName);
 
@@ -1076,7 +1076,7 @@ private:
         return *well_ptr;
     }
 
-    const Group& Schedule::getGroup(const std::string& groupName, std::size_t timeStep) const {
+    const Group& ScheduleImpl::getGroup(const std::string& groupName, std::size_t timeStep) const {
         if (this->groups.count(groupName) == 0)
             throw std::invalid_argument("No such group: '" + groupName + "'");
 
@@ -1088,13 +1088,13 @@ private:
         return *group_ptr;
     }
 
-    void Schedule::updateGroup(std::shared_ptr<Group> group, std::size_t reportStep) {
+    void ScheduleImpl::updateGroup(std::shared_ptr<Group> group, std::size_t reportStep) {
         auto& dynamic_state = this->groups.at(group->name());
         dynamic_state.update(reportStep, std::move(group));
     }
 
 
-    void Schedule::updateGuideRateModel(const GuideRateModel& new_model, std::size_t report_step) {
+    void ScheduleImpl::updateGuideRateModel(const GuideRateModel& new_model, std::size_t report_step) {
         auto new_config = std::make_shared<GuideRateConfig>(this->guideRateConfig(report_step));
         if (new_config->update_model(new_model))
             this->guide_rate_config.update( report_step, new_config );
@@ -1115,7 +1115,7 @@ private:
     */
 
 
-    std::vector<std::string> Schedule::wellNames(const std::string& pattern, std::size_t timeStep, const std::vector<std::string>& matching_wells) const {
+    std::vector<std::string> ScheduleImpl::wellNames(const std::string& pattern, std::size_t timeStep, const std::vector<std::string>& matching_wells) const {
         // ACTIONX handler
         if (pattern == "?")
             return { matching_wells.begin(), matching_wells.end() };
@@ -1125,7 +1125,7 @@ private:
     }
 
 
-    WellMatcher Schedule::wellMatcher(std::size_t report_step) const {
+    WellMatcher ScheduleImpl::wellMatcher(std::size_t report_step) const {
         std::vector<std::string> wnames;
         for (const auto& well_pair : this->wells_static) {
             const auto& dynamic_state = well_pair.second;
@@ -1136,11 +1136,11 @@ private:
     }
 
 
-    std::vector<std::string> Schedule::wellNames(const std::string& pattern) const {
+    std::vector<std::string> ScheduleImpl::wellNames(const std::string& pattern) const {
         return this->wellNames(pattern, this->size() - 1);
     }
 
-    std::vector<std::string> Schedule::wellNames(std::size_t timeStep) const {
+    std::vector<std::string> ScheduleImpl::wellNames(std::size_t timeStep) const {
         std::vector<std::string> names;
         for (const auto& well_pair : this->wells_static) {
             const auto& well_name = well_pair.first;
@@ -1152,7 +1152,7 @@ private:
         return names;
     }
 
-    std::vector<std::string> Schedule::wellNames() const {
+    std::vector<std::string> ScheduleImpl::wellNames() const {
         std::vector<std::string> names;
         for (const auto& well_pair : this->wells_static)
             names.push_back(well_pair.first);
@@ -1160,7 +1160,7 @@ private:
         return names;
     }
 
-    std::vector<std::string> Schedule::groupNames(const std::string& pattern, std::size_t timeStep) const {
+    std::vector<std::string> ScheduleImpl::groupNames(const std::string& pattern, std::size_t timeStep) const {
         if (pattern.size() == 0)
             return {};
 
@@ -1189,7 +1189,7 @@ private:
         return {};
     }
 
-    std::vector<std::string> Schedule::groupNames(std::size_t timeStep) const {
+    std::vector<std::string> ScheduleImpl::groupNames(std::size_t timeStep) const {
         std::vector<std::string> names;
         for (const auto& group_pair : this->groups) {
             const auto& dynamic_state = group_pair.second;
@@ -1200,7 +1200,7 @@ private:
         return names;
     }
 
-    std::vector<std::string> Schedule::groupNames(const std::string& pattern) const {
+    std::vector<std::string> ScheduleImpl::groupNames(const std::string& pattern) const {
         if (pattern.size() == 0)
             return {};
 
@@ -1223,7 +1223,7 @@ private:
         return {};
     }
 
-    std::vector<std::string> Schedule::groupNames() const {
+    std::vector<std::string> ScheduleImpl::groupNames() const {
         std::vector<std::string> names;
         for (const auto& group_pair : this->groups)
             names.push_back(group_pair.first);
@@ -1231,7 +1231,7 @@ private:
         return names;
     }
 
-    std::vector<const Group*> Schedule::restart_groups(std::size_t timeStep) const {
+    std::vector<const Group*> ScheduleImpl::restart_groups(std::size_t timeStep) const {
         std::size_t wdmax = this->m_runspec.wellDimensions().maxGroupsInField();
         std::vector<const Group*> rst_groups(wdmax + 1 , nullptr );
         for (const auto& group_name : this->groupNames(timeStep)) {
@@ -1246,7 +1246,7 @@ private:
     }
 
 
-    void Schedule::addGroup(const Group& group, std::size_t timeStep) {
+    void ScheduleImpl::addGroup(const Group& group, std::size_t timeStep) {
         this->groups.insert( std::make_pair( group.name(), DynamicState<std::shared_ptr<Group>>(this->m_timeMap, nullptr)));
         auto group_ptr = std::make_shared<Group>(group);
         auto& dynamic_state = this->groups.at(group.name());
@@ -1263,27 +1263,27 @@ private:
     }
 
 
-    void Schedule::addGroup(const std::string& groupName, std::size_t timeStep) {
+    void ScheduleImpl::addGroup(const std::string& groupName, std::size_t timeStep) {
         const std::size_t insert_index = this->groups.size();
         auto udq_undefined = this->getUDQConfig(timeStep).params().undefinedValue();
         auto group = Group{ groupName, insert_index, timeStep, udq_undefined, this->unit_system };
         this->addGroup(group, timeStep);
     }
 
-    std::size_t Schedule::numGroups() const {
+    std::size_t ScheduleImpl::numGroups() const {
         return groups.size();
     }
 
-    std::size_t Schedule::numGroups(std::size_t timeStep) const {
+    std::size_t ScheduleImpl::numGroups(std::size_t timeStep) const {
         const auto group_names = this->groupNames(timeStep);
         return group_names.size();
     }
 
-    bool Schedule::hasGroup(const std::string& groupName) const {
+    bool ScheduleImpl::hasGroup(const std::string& groupName) const {
         return groups.count(groupName) > 0;
     }
 
-    bool Schedule::hasGroup(const std::string& groupName, std::size_t timeStep) const {
+    bool ScheduleImpl::hasGroup(const std::string& groupName, std::size_t timeStep) const {
         if (timeStep >= this->size())
             return false;
 
@@ -1293,7 +1293,7 @@ private:
             && grpMap->second.at(timeStep);
     }
 
-    void Schedule::addGroupToGroup( const std::string& parent_group, const Group& child_group, std::size_t timeStep) {
+    void ScheduleImpl::addGroupToGroup( const std::string& parent_group, const Group& child_group, std::size_t timeStep) {
         // Add to new parent
         auto& dynamic_state = this->groups.at(parent_group);
         auto parent_ptr = std::make_shared<Group>( *dynamic_state[timeStep] );
@@ -1313,11 +1313,11 @@ private:
         }
     }
 
-    void Schedule::addGroupToGroup( const std::string& parent_group, const std::string& child_group, std::size_t timeStep) {
+    void ScheduleImpl::addGroupToGroup( const std::string& parent_group, const std::string& child_group, std::size_t timeStep) {
         this->addGroupToGroup(parent_group, this->getGroup(child_group, timeStep), timeStep);
     }
 
-    void Schedule::addWellToGroup( const std::string& group_name, const std::string& well_name , std::size_t timeStep) {
+    void ScheduleImpl::addWellToGroup( const std::string& group_name, const std::string& well_name , std::size_t timeStep) {
         const auto& well = this->getWell(well_name, timeStep);
         const auto old_gname = well.groupName();
         if (old_gname != group_name) {
@@ -1340,57 +1340,57 @@ private:
     }
 
 
-    const Tuning& Schedule::getTuning(std::size_t timeStep) const {
+    const Tuning& ScheduleImpl::getTuning(std::size_t timeStep) const {
         return this->m_tuning.get( timeStep );
     }
 
-    const Deck& Schedule::getModifierDeck(std::size_t timeStep) const {
+    const Deck& ScheduleImpl::getModifierDeck(std::size_t timeStep) const {
         return m_modifierDeck.iget( timeStep );
     }
 
-    const MessageLimits& Schedule::getMessageLimits() const {
+    const MessageLimits& ScheduleImpl::getMessageLimits() const {
         return m_messageLimits;
     }
 
 
-    const Events& Schedule::getWellGroupEvents(const std::string& wellGroup) const {
+    const Events& ScheduleImpl::getWellGroupEvents(const std::string& wellGroup) const {
         if (this->wellgroup_events.count(wellGroup) > 0)
             return this->wellgroup_events.at(wellGroup);
         else
             throw std::invalid_argument("No such well og group " + wellGroup);
     }
 
-    void Schedule::addWellGroupEvent(const std::string& wellGroup, ScheduleEvents::Events event, std::size_t reportStep)  {
+    void ScheduleImpl::addWellGroupEvent(const std::string& wellGroup, ScheduleEvents::Events event, std::size_t reportStep)  {
         auto& events = this->wellgroup_events.at(wellGroup);
         events.addEvent(event, reportStep);
     }
 
-    bool Schedule::hasWellGroupEvent(const std::string& wellGroup, uint64_t event_mask, std::size_t reportStep) const {
+    bool ScheduleImpl::hasWellGroupEvent(const std::string& wellGroup, uint64_t event_mask, std::size_t reportStep) const {
         const auto& events = this->getWellGroupEvents(wellGroup);
         return events.hasEvent(event_mask, reportStep);
     }
 
-    const Events& Schedule::getEvents() const {
+    const Events& ScheduleImpl::getEvents() const {
         return this->m_events;
     }
 
-    const OilVaporizationProperties& Schedule::getOilVaporizationProperties(std::size_t timestep) const {
+    const OilVaporizationProperties& ScheduleImpl::getOilVaporizationProperties(std::size_t timestep) const {
         return m_oilvaporizationproperties.get(timestep);
     }
 
-    const Well::ProducerCMode& Schedule::getGlobalWhistctlMmode(std::size_t timestep) const {
+    const Well::ProducerCMode& ScheduleImpl::getGlobalWhistctlMmode(std::size_t timestep) const {
         return global_whistctl_mode.get(timestep);
     }
 
 
-    bool Schedule::hasOilVaporizationProperties() const {
+    bool ScheduleImpl::hasOilVaporizationProperties() const {
         for (std::size_t i = 0; i < this->m_timeMap.size(); ++i)
             if (m_oilvaporizationproperties.at( i ).defined()) return true;
 
         return false;
     }
 
-    void Schedule::checkIfAllConnectionsIsShut(std::size_t timeStep) {
+    void ScheduleImpl::checkIfAllConnectionsIsShut(std::size_t timeStep) {
         const auto& well_names = this->wellNames(timeStep);
         for (const auto& wname : well_names) {
             const auto& well = this->getWell(wname, timeStep);
@@ -1406,7 +1406,7 @@ private:
     }
 
 
-    void Schedule::filterConnections(const ActiveGridCells& grid) {
+    void ScheduleImpl::filterConnections(const ActiveGridCells& grid) {
         for (auto& dynamic_pair : this->wells_static) {
             auto& dynamic_state = dynamic_pair.second;
             for (auto& well_pair : dynamic_state.unique()) {
@@ -1416,7 +1416,7 @@ private:
         }
     }
 
-    const VFPProdTable& Schedule::getVFPProdTable(int table_id, std::size_t timeStep) const {
+    const VFPProdTable& ScheduleImpl::getVFPProdTable(int table_id, std::size_t timeStep) const {
         const auto pair = vfpprod_tables.find(table_id);
         if (pair == vfpprod_tables.end())
             throw std::invalid_argument("No such table id: " + std::to_string(table_id));
@@ -1428,7 +1428,7 @@ private:
         return *table_ptr;
     }
 
-    const VFPInjTable& Schedule::getVFPInjTable(int table_id, std::size_t timeStep) const {
+    const VFPInjTable& ScheduleImpl::getVFPInjTable(int table_id, std::size_t timeStep) const {
         const auto pair = vfpinj_tables.find(table_id);
         if (pair == vfpinj_tables.end())
             throw std::invalid_argument("No such table id: " + std::to_string(table_id));
@@ -1440,7 +1440,7 @@ private:
         return *table_ptr;
     }
 
-    std::map<int, std::shared_ptr<const VFPInjTable> > Schedule::getVFPInjTables(std::size_t timeStep) const {
+    std::map<int, std::shared_ptr<const VFPInjTable> > ScheduleImpl::getVFPInjTables(std::size_t timeStep) const {
         std::map<int, std::shared_ptr<const VFPInjTable> > tables;
         for (const auto& pair : this->vfpinj_tables) {
             if (pair.second.get(timeStep)) {
@@ -1450,7 +1450,7 @@ private:
         return tables;
     }
 
-    std::map<int, std::shared_ptr<const VFPProdTable> > Schedule::getVFPProdTables(std::size_t timeStep) const {
+    std::map<int, std::shared_ptr<const VFPProdTable> > ScheduleImpl::getVFPProdTables(std::size_t timeStep) const {
         std::map<int, std::shared_ptr<const VFPProdTable> > tables;
         for (const auto& pair : this->vfpprod_tables) {
             if (pair.second.get(timeStep)) {
@@ -1460,84 +1460,84 @@ private:
         return tables;
     }
 
-    const UDQActive& Schedule::udqActive(std::size_t timeStep) const {
+    const UDQActive& ScheduleImpl::udqActive(std::size_t timeStep) const {
         return *this->udq_active[timeStep];
     }
 
-    void Schedule::updateUDQActive( std::size_t timeStep, std::shared_ptr<UDQActive> udq ) {
+    void ScheduleImpl::updateUDQActive( std::size_t timeStep, std::shared_ptr<UDQActive> udq ) {
         this->udq_active.update(timeStep, udq);
     }
 
-    const WellTestConfig& Schedule::wtestConfig(std::size_t timeStep) const {
+    const WellTestConfig& ScheduleImpl::wtestConfig(std::size_t timeStep) const {
         const auto& ptr = this->wtest_config.get(timeStep);
         return *ptr;
     }
 
-    const GConSale& Schedule::gConSale(std::size_t timeStep) const {
+    const GConSale& ScheduleImpl::gConSale(std::size_t timeStep) const {
         const auto& ptr = this->gconsale.get(timeStep);
         return *ptr;
     }
 
-    const GConSump& Schedule::gConSump(std::size_t timeStep) const {
+    const GConSump& ScheduleImpl::gConSump(std::size_t timeStep) const {
         const auto& ptr = this->gconsump.get(timeStep);
         return *ptr;
     }
 
-    const WListManager& Schedule::getWListManager(std::size_t timeStep) const {
+    const WListManager& ScheduleImpl::getWListManager(std::size_t timeStep) const {
         const auto& ptr = this->wlist_manager.get(timeStep);
         return *ptr;
     }
 
-    const UDQConfig& Schedule::getUDQConfig(std::size_t timeStep) const {
+    const UDQConfig& ScheduleImpl::getUDQConfig(std::size_t timeStep) const {
         const auto& ptr = this->udq_config.get(timeStep);
         return *ptr;
     }
 
-    std::vector<const UDQConfig*> Schedule::udqConfigList() const {
+    std::vector<const UDQConfig*> ScheduleImpl::udqConfigList() const {
         std::vector<const UDQConfig*> udq_list;
         for (const auto& udq_pair : this->udq_config.unique())
             udq_list.push_back( udq_pair.second.get() );
         return udq_list;
     }
 
-    const GuideRateConfig& Schedule::guideRateConfig(std::size_t timeStep) const {
+    const GuideRateConfig& ScheduleImpl::guideRateConfig(std::size_t timeStep) const {
         const auto& ptr = this->guide_rate_config.get(timeStep);
         return *ptr;
     }
 
-    const RPTConfig& Schedule::report_config(std::size_t timeStep) const {
+    const RPTConfig& ScheduleImpl::report_config(std::size_t timeStep) const {
         const auto& ptr = this->rpt_config.get(timeStep);
         return *ptr;
     }
 
-    std::optional<int> Schedule::exitStatus() const {
+    std::optional<int> ScheduleImpl::exitStatus() const {
         return this->exit_status;
     }
 
-    std::size_t Schedule::size() const {
+    std::size_t ScheduleImpl::size() const {
         return this->m_timeMap.size();
     }
 
 
-    double  Schedule::seconds(std::size_t timeStep) const {
+    double  ScheduleImpl::seconds(std::size_t timeStep) const {
         return this->m_timeMap.seconds(timeStep);
     }
 
-    time_t Schedule::simTime(std::size_t timeStep) const {
+    time_t ScheduleImpl::simTime(std::size_t timeStep) const {
         return this->m_timeMap[timeStep];
     }
 
-    double Schedule::stepLength(std::size_t timeStep) const {
+    double ScheduleImpl::stepLength(std::size_t timeStep) const {
         return this->m_timeMap.getTimeStepLength(timeStep);
     }
 
 
-    const Action::Actions& Schedule::actions(std::size_t timeStep) const {
+    const Action::Actions& ScheduleImpl::actions(std::size_t timeStep) const {
         const auto& ptr = this->m_actions.get(timeStep);
         return *ptr;
     }
 
-    void Schedule::applyAction(std::size_t reportStep, const Action::ActionX& action, const Action::Result& result) {
+    void ScheduleImpl::applyAction(std::size_t reportStep, const Action::ActionX& action, const Action::Result& result) {
         ParseContext parseContext;
         ErrorGuard errors;
 
@@ -1593,7 +1593,7 @@ private:
 
 
 
-    void Schedule::applyWellProdIndexScaling(const std::string& well_name, const std::size_t reportStep, const double scalingFactor) {
+    void ScheduleImpl::applyWellProdIndexScaling(const std::string& well_name, const std::size_t reportStep, const double scalingFactor) {
         auto wstat = this->wells_static.find(well_name);
         if (wstat == this->wells_static.end())
             return;
@@ -1625,19 +1625,19 @@ private:
             }
     }
 
-    RestartConfig& Schedule::restart() {
+    RestartConfig& ScheduleImpl::restart() {
         return this->restart_config;
     }
 
-    const RestartConfig& Schedule::restart() const {
+    const RestartConfig& ScheduleImpl::restart() const {
         return this->restart_config;
     }
 
-    int Schedule::getNupcol(std::size_t reportStep) const {
+    int ScheduleImpl::getNupcol(std::size_t reportStep) const {
         return this->m_nupcol.get(reportStep);
     }
 
-    bool Schedule::operator==(const Schedule& data) const {
+    bool ScheduleImpl::operator==(const Schedule& data) const {
         auto&& comparePtr = [](const auto& t1, const auto& t2) {
                                if ((t1 && !t2) || (!t1 && t2))
                                    return false;
@@ -1700,12 +1700,12 @@ private:
      }
 
 
-    std::string Schedule::formatDate(std::time_t t) {
+    std::string ScheduleImpl::formatDate(std::time_t t) {
         const auto ts { TimeStampUTC(t) } ;
         return fmt::format("{:04d}-{:02d}-{:02d}" , ts.year(), ts.month(), ts.day());
     }
 
-    std::string Schedule::simulationDays(std::size_t currentStep) const {
+    std::string ScheduleImpl::simulationDays(std::size_t currentStep) const {
         const double sim_time { this->unit_system.from_si(UnitSystem::measure::time, simTime(currentStep)) } ;
         return fmt::format("{} {}", sim_time, this->unit_system.name(UnitSystem::measure::time));
     }
@@ -1727,7 +1727,7 @@ namespace {
     }
 }
 
-    void Schedule::load_rst(const RestartIO::RstState& rst_state, const EclipseGrid& grid, const FieldPropsManager& fp)
+    void ScheduleImpl::load_rst(const RestartIO::RstState& rst_state, const EclipseGrid& grid, const FieldPropsManager& fp)
     {
         double udq_undefined = 0;
         const auto report_step = rst_state.header.report_step - 1;
@@ -1822,21 +1822,21 @@ namespace {
         }
     }
 
-    std::shared_ptr<const Python> Schedule::python() const
+    std::shared_ptr<const Python> ScheduleImpl::python() const
     {
         return this->python_handle;
     }
 
 
-    void Schedule::updateNetwork(std::shared_ptr<Network::ExtNetwork> network, std::size_t report_step) {
+    void ScheduleImpl::updateNetwork(std::shared_ptr<Network::ExtNetwork> network, std::size_t report_step) {
         this->m_network.update(report_step, std::move(network));
     }
 
-    const Network::ExtNetwork& Schedule::network(std::size_t report_step) const {
+    const Network::ExtNetwork& ScheduleImpl::network(std::size_t report_step) const {
         return *this->m_network[report_step];
     }
 
-    const GasLiftOpt& Schedule::glo(std::size_t report_step) const {
+    const GasLiftOpt& ScheduleImpl::glo(std::size_t report_step) const {
         return *this->m_glo[report_step];
     }
 
@@ -1916,7 +1916,7 @@ std::string well_connection_msg(const std::string& well, const Connection& conn,
 
 }
 
-bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t report_step) {
+bool ScheduleImpl::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t report_step) {
     int count = not_equal(sched1.wellNames(report_step), sched2.wellNames(report_step), "Wellnames");
     if (count != 0)
         return false;
