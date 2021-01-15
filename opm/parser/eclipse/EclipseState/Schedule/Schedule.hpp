@@ -33,7 +33,6 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/Group.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GTNode.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GuideRateConfig.hpp>
-#include <opm/parser/eclipse/EclipseState/Util/OrderedMap.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/MessageLimits.hpp>
 #include <opm/parser/eclipse/EclipseState/Runspec.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/RFTConfig.hpp>
@@ -162,7 +161,7 @@ namespace Opm
 
     class Schedule {
     public:
-        using WellMap = OrderedMap<std::string, DynamicState<std::shared_ptr<Well>>>;
+        using WellMap = std::unordered_map<std::string, DynamicState<std::shared_ptr<Well>>>;
         using GroupMap = std::unordered_map<std::string, DynamicState<std::shared_ptr<Group>>>;
 
         Schedule() = default;

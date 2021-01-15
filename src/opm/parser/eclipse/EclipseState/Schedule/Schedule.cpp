@@ -982,6 +982,8 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             if (well_ptr)
                 wells.push_back(*well_ptr.get());
         }
+        std::sort(wells.begin(), wells.end(), [](const Well& well1, const Well& well2) { return well1.seqIndex() < well2.seqIndex(); });
+
         return wells;
     }
 
@@ -1038,6 +1040,10 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
       should be one-stop function to get all well names according to a input
       pattern. The timestep argument is used to check that the wells have
       indeed been defined at the point in time we are considering.
+
+      Observe that resulting list of well names is *arbitrary*. If you need the
+      wells in input order - e.g. for output purposes you need to use
+      Schedule::getWells()
 
       [1]: The leading '*' in a WLIST name should not be interpreted as a shell
            wildcard!
