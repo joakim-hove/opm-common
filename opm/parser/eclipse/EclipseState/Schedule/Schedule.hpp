@@ -334,18 +334,13 @@ namespace Opm
             auto splitWells = splitDynMap(wells_static);
             serializer.vector(splitWells.first);
             serializer(splitWells.second);
-            auto splitGroups = splitDynMap(groups);
-            serializer.vector(splitGroups.first);
-            serializer(splitGroups.second);
             udq_config.serializeOp(serializer);
             guide_rate_config.serializeOp(serializer);
             m_glo.serializeOp(serializer);
             rft_config.serializeOp(serializer);
             restart_config.serializeOp(serializer);
-            if (!serializer.isSerializing()) {
+            if (!serializer.isSerializing())
                 reconstructDynMap(splitWells.first, splitWells.second, wells_static);
-                reconstructDynMap(splitGroups.first, splitGroups.second, groups);
-            }
             serializer.vector(snapshots);
             m_static.serializeOp(serializer);
         }
@@ -356,7 +351,6 @@ namespace Opm
         ScheduleDeck m_sched_deck;
         TimeMap m_timeMap;
         WellMap wells_static;
-        GroupMap groups;
         DynamicState<std::shared_ptr<UDQConfig>> udq_config;
         DynamicState<std::shared_ptr<GuideRateConfig>> guide_rate_config;
         DynamicState<std::shared_ptr<GasLiftOpt>> m_glo;

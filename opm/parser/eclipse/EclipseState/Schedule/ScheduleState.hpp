@@ -34,6 +34,7 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/Well.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Well/WListManager.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/MessageLimits.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/Group/Group.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GConSump.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GConSale.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Network/ExtNetwork.hpp>
@@ -157,6 +158,7 @@ namespace Opm {
             serializer.map(m_vfpinj);
             serializer(m_actions);
             serializer(m_udq_active);
+            serializer.map(m_groups);
         }
 
 
@@ -183,6 +185,7 @@ namespace Opm {
         std::shared_ptr<UDQActive> m_udq_active;
         std::map<int, std::shared_ptr<VFPProdTable>> m_vfpprod;
         std::map<int, std::shared_ptr<VFPInjTable>> m_vfpinj;
+        std::unordered_map<std::string, std::shared_ptr<Group>> m_groups;
     };
 }
 

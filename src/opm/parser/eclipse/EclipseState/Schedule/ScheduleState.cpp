@@ -168,6 +168,9 @@ bool ScheduleState::operator==(const ScheduleState& other) const {
     if (!map_equal(this->m_vfpinj, other.m_vfpinj))
         return false;
 
+    if (!map_equal(this->m_groups, other.m_groups))
+        return false;
+
     return this->m_start_time == other.m_start_time &&
            this->m_oilvap == other.m_oilvap &&
            this->m_tuning == other.m_tuning &&
@@ -185,6 +188,7 @@ bool ScheduleState::operator==(const ScheduleState& other) const {
            *this->m_udq_active == *other.m_udq_active &&
            this->m_nupcol == other.m_nupcol;
 }
+
 
 ScheduleState ScheduleState::serializeObject() {
     auto t1 = std::chrono::system_clock::now();
@@ -206,6 +210,8 @@ ScheduleState ScheduleState::serializeObject() {
     ts.m_vfpinj.emplace( std::make_pair(178, std::make_shared<VFPInjTable>(VFPInjTable::serializeObject() )));
     ts.m_actions = std::make_shared<Action::Actions>( Action::Actions::serializeObject() );
     ts.m_udq_active = std::make_shared<UDQActive>( UDQActive::serializeObject() );
+    ts.m_groups.emplace( std::make_pair("G1", std::make_shared<Group>( Group::serializeObject() )));
+    ts.m_groups.emplace( std::make_pair("G2", std::make_shared<Group>( Group::serializeObject() )));
     return ts;
 }
 
