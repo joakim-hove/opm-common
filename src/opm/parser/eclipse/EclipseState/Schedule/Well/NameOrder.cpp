@@ -67,18 +67,29 @@ std::vector<std::string>::const_iterator NameOrder::end() const {
 
 bool NameOrder::operator==(const NameOrder& other) const {
     return this->m_names1 == other.m_names1 &&
+           this->m_max_groups == other.m_max_groups &&
            this->m_names2 == other.m_names2;
 }
 
-GroupOrder::GroupOrder() :
+
+GroupOrder::GroupOrder(std::size_t max_groups) :
     NameOrder()
 {
+    this->m_max_groups = max_groups;
     this->add("FIELD");
 }
 
-std::vector<std::string> GroupOrder::restart_groups() const {
+
+GroupOrder GroupOrder::serializeObject() {
+    GroupOrder go(123);
+    go.add("G1");
+    go.add("G2");
+    return go;
+}
+
+std::vector<std::optional<std::string>> GroupOrder::restart_groups() const {
     const auto& input_groups = this->names();
-    std::vector<std::string> groups{ input_groups.size() };
+    std::vector<std::optional<std::string>> groups{ this->m_max_groups + 1 };
     for (std::size_t index = 1; index < input_groups.size(); index++)
         groups[index - 1] = input_groups[index];
     groups.back() = input_groups[0];

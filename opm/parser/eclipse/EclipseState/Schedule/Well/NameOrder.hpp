@@ -19,6 +19,7 @@
 #ifndef WELL_ORDER_HPP
 #define WELL_ORDER_HPP
 
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -46,6 +47,7 @@ public:
     void serializeOp(Serializer& serializer) {
         serializer.template map<Map, false>(m_names1);
         serializer(m_names2);
+        serializer(m_max_groups);
     }
 
     static NameOrder serializeObject();
@@ -57,13 +59,20 @@ public:
 private:
     Map m_names1;
     std::vector<std::string> m_names2;
+
+protected:
+    // This member should really be in the derived GroupOrder class, but to
+    // simplify serialization++ it is tucked away here.
+    std::size_t m_max_groups = 0;
 };
 
 
 class GroupOrder : public NameOrder {
 public:
-    GroupOrder();
-    std::vector<std::string> restart_groups() const;
+    GroupOrder() = default;
+    explicit GroupOrder(std::size_t max_groups);
+    static GroupOrder serializeObject();
+    std::vector<std::optional<std::string>> restart_groups() const;
 };
 
 }
