@@ -284,6 +284,11 @@ namespace {
         OilVaporizationProperties::updateDRVDT(ovp, max);
     }
 
+    void Schedule::handleEXIT(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
+        if (handlerContext.runtime)
+            this->applyEXIT(handlerContext.keyword, handlerContext.currentStep);
+    }
+
     void Schedule::handleGCONINJE(const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {
         auto current_step = handlerContext.currentStep;
         const auto& keyword = handlerContext.keyword;
@@ -1747,7 +1752,7 @@ namespace {
 
     void Schedule::handleWPAVE(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
         auto wpave = PAvg( handlerContext.keyword.getRecord(0) );
-        for (const auto& wname : this->wellNames(handlerContext.currentStep))
+        for (const auto& wname : this->wellNames(handlerContext.currentStep)) gs
             this->updateWPAVE(wname, handlerContext.currentStep, wpave );
 
         auto& sched_state = this->snapshots.back();
@@ -1800,6 +1805,7 @@ namespace {
             { "DRSDTR"  , &Schedule::handleDRSDTR   },
             { "DRVDT"   , &Schedule::handleDRVDT    },
             { "DRVDTR"  , &Schedule::handleDRVDTR   },
+            { "EXIT",     &Schedule::handleEXIT     },
             { "GCONINJE", &Schedule::handleGCONINJE },
             { "GCONPROD", &Schedule::handleGCONPROD },
             { "GCONSALE", &Schedule::handleGCONSALE },

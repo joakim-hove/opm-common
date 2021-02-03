@@ -1231,7 +1231,8 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
                                 true,
                                 ignored_rftProperties);
         }
-        iterateScheduleSection(reportStep + 1, this->m_sched_deck.size(), parseContext, errors, true, nullptr, nullptr);
+        if (reportStep < this->m_sched_deck.size() - 1)
+            iterateScheduleSection(reportStep + 1, this->m_sched_deck.size(), parseContext, errors, true, nullptr, nullptr);
 
         //this->m_sched_deck[reportStep].push
 

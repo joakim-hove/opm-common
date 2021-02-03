@@ -645,6 +645,7 @@ namespace Opm
         void handleDRSDTR   (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleDRVDT    (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleDRVDTR   (const HandlerContext&, const ParseContext&, ErrorGuard&);
+        void handleEXIT     (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleGCONINJE (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleGCONPROD (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleGCONSALE (const HandlerContext&, const ParseContext&, ErrorGuard&);
