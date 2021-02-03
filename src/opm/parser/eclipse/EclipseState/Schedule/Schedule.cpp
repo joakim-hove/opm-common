@@ -248,7 +248,6 @@ namespace {
 
         result.m_static = ScheduleStatic::serializeObject();
         result.m_timeMap = TimeMap::serializeObject();
-        result.wells_static.insert({"test1", {{std::make_shared<Opm::Well>(Opm::Well::serializeObject())},1}});
         result.udq_config = {{std::make_shared<UDQConfig>(UDQConfig::serializeObject())}, 1};
         result.m_glo = {{std::make_shared<GasLiftOpt>(GasLiftOpt::serializeObject())}, 1};
         result.guide_rate_config = {{std::make_shared<GuideRateConfig>(GuideRateConfig::serializeObject())}, 1};
@@ -540,20 +539,13 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
         this->updateWellStatus(well_name, report_step, Well::Status::STOP);
     }
 
-    void Schedule::updateWell(std::shared_ptr<Well> well, std::size_t reportStep) {
-        auto& dynamic_state = this->wells_static.at(well->name());
-        dynamic_state.update_equal(reportStep, std::move(well));
-    }
-
-
     /*
       Function is quite dangerous - because if this is called while holding a
       Well pointer that will go stale and needs to be refreshed.
     */
-    bool Schedule::updateWellStatus( const std::string& well_name, std::size_t reportStep, Well::Status status, std::optional<KeywordLocation> location) {
-        auto& dynamic_state = this->wells_static.at(well_name);
-        auto well2 = std::make_shared<Well>(*dynamic_state[reportStep]);
-        if (well2->getConnections().empty() && status == Well::Status::OPEN) {
+    bool Schedule::updateWellStatus( const std::string& well_name, std::size_t reportStep , Well::Status status, std::optional<KeywordLocation> location) {
+        auto well2 = this->snapshots[reportStep].wells.get(well_name);
+        if (well2.getConnections().empty() && status == Well::Status::OPEN) {
             if (location) {
                 auto msg = fmt::format("Problem with{}\n",
                                        "In {} line{}\n"
@@ -564,10 +556,10 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             return false;
         }
 
-        auto old_status = well2->getStatus();
+        auto old_status = well2.getStatus();
         bool update = false;
-        if (well2->updateStatus(status)) {
-            this->updateWell(well2, reportStep);
+        if (well2.updateStatus(status)) {
+            this->snapshots[reportStep].wells.update( std::move(well2) );
             if (status == Well::Status::OPEN)
                 this->rft_config.addWellOpen(well_name, reportStep);
 
@@ -580,7 +572,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             */
             if (old_status != status) {
                 this->snapshots.back().events().addEvent( ScheduleEvents::WELL_STATUS_CHANGE);
-                this->snapshots.back().wellgroup_events().addEvent( well2->name(), ScheduleEvents::WELL_STATUS_CHANGE);
+                this->snapshots.back().wellgroup_events().addEvent( well2.name(), ScheduleEvents::WELL_STATUS_CHANGE);
             }
 
             update = true;
@@ -592,10 +584,9 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
     bool Schedule::updateWPAVE(const std::string& wname, std::size_t report_step, const PAvg& pavg) {
         const auto& well = this->getWell(wname, report_step);
         if (well.pavg() != pavg) {
-            auto& dynamic_state = this->wells_static.at(wname);
-            auto new_well = std::make_shared<Well>(*dynamic_state[report_step]);
-            new_well->updateWPAVE( pavg );
-            this->updateWell(new_well, report_step);
+            auto new_well = this->snapshots[report_step].wells.get(wname);
+            new_well.updateWPAVE( pavg );
+            this->snapshots[report_step].wells.update( std::move(new_well) );
             return true;
         }
         return false;
@@ -675,17 +666,14 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
              */
             for (const auto& wname : well_names) {
                 if (!runtime) {
-                    auto& dynamic_state = this->wells_static.at(wname);
-                    auto well_ptr = std::make_shared<Well>( *dynamic_state[currentStep] );
-                    this->updateWell(well_ptr, currentStep);
+                    auto well = this->snapshots[currentStep].wells.get(wname);
+                    this->snapshots[currentStep].wells.update( std::move(well) );
                 }
 
                 const auto connection_status = Connection::StateFromString( status_str );
                 {
-                    auto& dynamic_state = this->wells_static.at(wname);
-                    auto well_ptr = std::make_shared<Well>( *dynamic_state[currentStep] );
-                    if (well_ptr->handleWELOPENConnections(record, connection_status, runtime))
-                        dynamic_state.update(currentStep, std::move(well_ptr));
+                    auto well = this->snapshots[currentStep].wells.get(wname);
+                    well.handleWELOPENConnections(record, connection_status);
                 }
 
                 this->snapshots.back().events().addEvent( ScheduleEvents::COMPLETION_CHANGE);
@@ -833,10 +821,8 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             wo.add( wname );
             sched_state.well_order.update( std::move(wo) );
         }
-        well.setInsertIndex(this->wells_static.size());
-        this->wells_static.insert( std::make_pair(wname, DynamicState<std::shared_ptr<Well>>(m_timeMap, nullptr)));
-        auto& dynamic_well_state = this->wells_static.at(wname);
-        dynamic_well_state.update(report_step, std::make_shared<Well>(std::move(well)));
+        well.setInsertIndex(sched_state.wells.size());
+        this->snapshots[report_step].wells.update( std::move(well) );
     }
 
     void Schedule::addWell(const std::string& wellName,
@@ -879,7 +865,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
 
     std::size_t Schedule::numWells() const {
-        return wells_static.size();
+        return this->snapshots.back().wells.size();
     }
 
     std::size_t Schedule::numWells(std::size_t timestep) const {
@@ -888,15 +874,11 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
     }
 
     bool Schedule::hasWell(const std::string& wellName) const {
-        return wells_static.count( wellName ) > 0;
+        return this->snapshots.back().wells.has(wellName);
     }
 
     bool Schedule::hasWell(const std::string& wellName, std::size_t timeStep) const {
-        if (this->wells_static.count(wellName) == 0)
-            return false;
-
-        const auto& well = this->getWellatEnd(wellName);
-        return well.hasBeenDefined(timeStep);
+        return this->snapshots[timeStep].wells.has(wellName);
     }
 
     std::vector< const Group* > Schedule::getChildGroups2(const std::string& group_name, std::size_t timeStep) const {
@@ -935,23 +917,20 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
       settings have changed will not be included.
     */
     std::vector<std::string> Schedule::changed_wells(std::size_t report_step) const {
-        std::vector<std::string> wells;
+        if (report_step == 0)
+            return {};
 
-        for (const auto& dynamic_pair : this->wells_static) {
-            const auto& well_ptr = dynamic_pair.second.get(report_step);
-            if (well_ptr) {
-                if (report_step > 0) {
-                    const auto& prev = dynamic_pair.second.get(report_step - 1);
-                    if (prev) {
-                        if (!well_ptr->cmp_structure( *prev ))
-                            wells.push_back( well_ptr->name() );
-                    } else {
-                        wells.push_back( well_ptr->name() );
-                    }
-                } else {
-                    wells.push_back( well_ptr->name() );
-                }
-            }
+        std::vector<std::string> wells;
+        const auto& state = this->snapshots[report_step];
+        const auto& prev_state = this->snapshots[report_step - 1];
+        for (const auto& well_ref : state.wells()) {
+            const auto& wname = well_ref.get().name();
+            if (prev_state.wells.has(wname)) {
+                const auto& prev_well = prev_state.wells.get( wname );
+                if (!prev_well.cmp_structure(well_ref.get()))
+                    wells.push_back( wname );
+            } else
+                wells.push_back( wname );
         }
 
         return wells;
@@ -964,33 +943,22 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             throw std::invalid_argument("timeStep argument beyond the length of the simulation");
 
         const auto& well_order = this->snapshots[timeStep].well_order();
-        for (const auto& wname : well_order) {
-            const auto& dynamic_state = this->wells_static.at(wname);
-            const auto& well_ptr = dynamic_state.get(timeStep);
-            if (well_ptr)
-                wells.push_back(*well_ptr.get());
-        }
+        for (const auto& wname : well_order)
+            wells.push_back( this->snapshots[timeStep].wells.get(wname) );
+
         return wells;
     }
 
     std::vector<Well> Schedule::getWellsatEnd() const {
-        return this->getWells(this->m_timeMap.size() - 1);
+        return this->getWells(this->snapshots.size() - 1);
     }
 
     const Well& Schedule::getWellatEnd(const std::string& well_name) const {
-        return this->getWell(well_name, this->m_timeMap.size() - 1);
+        return this->getWell(well_name, this->snapshots.size() - 1);
     }
 
     const Well& Schedule::getWell(const std::string& wellName, std::size_t timeStep) const {
-        if (this->wells_static.count(wellName) == 0)
-            throw std::invalid_argument("No such well: " + wellName);
-
-        const auto& dynamic_state = this->wells_static.at(wellName);
-        auto& well_ptr = dynamic_state.get(timeStep);
-        if (!well_ptr)
-            throw std::invalid_argument("Well: " + wellName + " not yet defined at step: " + std::to_string(timeStep));
-
-        return *well_ptr;
+        return this->snapshots[timeStep].wells.get(wellName);
     }
 
     const Group& Schedule::getGroup(const std::string& groupName, std::size_t timeStep) const {
@@ -1145,13 +1113,12 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
     }
 
     void Schedule::addWellToGroup( const std::string& group_name, const std::string& well_name , std::size_t timeStep) {
-        const auto& well = this->getWell(well_name, timeStep);
+        auto well = this->getWell(well_name, timeStep);
         const auto old_gname = well.groupName();
         if (old_gname != group_name) {
-            auto well_ptr = std::make_shared<Well>( well );
-            well_ptr->updateGroup(group_name);
-            this->updateWell(well_ptr, timeStep);
-            this->snapshots.back().wellgroup_events().addEvent( well_ptr->name(), ScheduleEvents::WELL_WELSPECS_UPDATE );
+            well.updateGroup(group_name);
+            this->snapshots.back().wells.update( std::move(well) );
+            this->snapshots.back().wellgroup_events().addEvent( well_name, ScheduleEvents::WELL_WELSPECS_UPDATE );
 
             // Remove well child reference from previous group
             auto group = this->snapshots.back().groups.get( old_gname );
@@ -1191,11 +1158,9 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
 
     void Schedule::filterConnections(const ActiveGridCells& grid) {
-        for (auto& dynamic_pair : this->wells_static) {
-            auto& dynamic_state = dynamic_pair.second;
-            for (auto& well_pair : dynamic_state.unique()) {
-                if (well_pair.second)
-                    well_pair.second->filterConnections(grid);
+        for (auto& sched_state : *this) {
+            for (auto& well : sched_state.wells()) {
+                well.get().filterConnections(grid);
             }
         }
     }
@@ -1297,35 +1262,36 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
 
 
     void Schedule::applyWellProdIndexScaling(const std::string& well_name, const std::size_t reportStep, const double scalingFactor) {
-        auto wstat = this->wells_static.find(well_name);
-        if (wstat == this->wells_static.end())
-            return;
+        throw std::logic_error("WELPI not implemented");
+        // WELPI: auto wstat = this->wells_static.find(well_name);
+        // WELPI: if (wstat == this->wells_static.end())
+        // WELPI:     return;
 
-        auto unique_well_instances = wstat->second.unique();
+        // WELPI: auto unique_well_instances = wstat->second.unique();
 
-        auto end   = unique_well_instances.end();
-        auto start = std::lower_bound(unique_well_instances.begin(), end, reportStep,
-            [](const auto& time_well_pair, const auto lookup) -> bool
-        {
-            //     time                 < reportStep
-            return time_well_pair.first < lookup;
-        });
+        // WELPI: auto end   = unique_well_instances.end();
+        // WELPI: auto start = std::lower_bound(unique_well_instances.begin(), end, reportStep,
+        // WELPI:     [](const auto& time_well_pair, const auto lookup) -> bool
+        // WELPI: {
+        // WELPI:     //     time                 < reportStep
+        // WELPI:     return time_well_pair.first < lookup;
+        // WELPI: });
 
-        if (start == end)
-            // Report step after last?
-            return;
+        // WELPI: if (start == end)
+        // WELPI:     // Report step after last?
+        // WELPI:     return;
 
-        // Relies on wells_static being OrderedMap<string, DynamicState<shared_ptr<>>>
-        // which means unique_well_instances is a vector<pair<report_step, shared_ptr<>>>
-        std::vector<bool> scalingApplicable;
-        auto wellPtr = start->second;
-        wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
+        // WELPI: // Relies on wells_static being OrderedMap<string, DynamicState<shared_ptr<>>>
+        // WELPI: // which means unique_well_instances is a vector<pair<report_step, shared_ptr<>>>
+        // WELPI: std::vector<bool> scalingApplicable;
+        // WELPI: auto wellPtr = start->second;
+        // WELPI: wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
 
-        for (; start != end; ++start)
-            if (! wellPtr->hasSameConnectionsPointers(*start->second)) {
-                wellPtr = start->second;
-                wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
-            }
+        // WELPI: for (; start != end; ++start)
+        // WELPI:     if (! wellPtr->hasSameConnectionsPointers(*start->second)) {
+        // WELPI:         wellPtr = start->second;
+        // WELPI:         wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
+        // WELPI:     }
     }
 
     RestartConfig& Schedule::restart() {
@@ -1353,24 +1319,8 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
                               state2.data().begin(), comparePtr);
         };
 
-        auto&& compareMap = [compareDynState](const auto& map1, const auto& map2) {
-            if (map1.size() != map2.size())
-                return false;
-            auto it2 = map2.begin();
-            for (const auto& it : map1) {
-                if (it.first != it2->first)
-                    return false;
-                if (!compareDynState(it.second, it2->second))
-                    return false;
-
-                ++it2;
-            }
-            return true;
-        };
-
         return this->m_timeMap == data.m_timeMap &&
                this->m_static == data.m_static &&
-               compareMap(this->wells_static, data.wells_static) &&
                compareDynState(this->m_glo, data.m_glo) &&
                compareDynState(this->udq_config, data.udq_config) &&
                compareDynState(this->guide_rate_config, data.guide_rate_config) &&
