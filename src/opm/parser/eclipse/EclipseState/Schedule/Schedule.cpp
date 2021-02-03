@@ -1209,54 +1209,69 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
         ParseContext parseContext;
         ErrorGuard errors;
 
+        this->snapshots.resize(reportStep + 1);
+        auto& input_block = this->m_sched_deck[reportStep];
         for (const auto& keyword : action) {
-            if (!Action::ActionX::valid_keyword(keyword.name()))
-                throw std::invalid_argument("The keyword: " + keyword.name() + " can not be handled in the ACTION body");
-
-            if (keyword.name() == "EXIT")
-                this->applyEXIT(keyword, reportStep);
-
-            if (keyword.name() == "GCONINJE")
-                this->handleGCONINJE(keyword, reportStep, parseContext, errors);
-
-            if (keyword.name() == "GCONPROD")
-                this->handleGCONPROD(keyword, reportStep, parseContext, errors);
-
-            if (keyword.name() == "GLIFTOPT")
-                this->handleGLIFTOPT(keyword, reportStep, parseContext, errors);
-
-            if (keyword.name() == "UDQ")
-                this->updateUDQ(keyword, reportStep);
-
-            if (keyword.name() == "WELOPEN")
-                this->applyWELOPEN(keyword, reportStep, true, parseContext, errors, result.wells());
-
-            /*
-              The WELPI functionality is implemented as a two-step process
-              involving both code here in opm-common and opm-simulator. The
-              update process goes like this:
-
-                1. The scalar factor from the WELPI keyword is internalized in
-                   the WellConnections objects. And the event
-                   WELL_PRODUCTIVITY_INDEX is emitted to signal that a PI
-                   recalculation is required.
-
-                2. In opm-simulators the run loop will detect
-                   WELL_PRODUCTIVITY_INDEX event and perform the actual PI
-                   recalculation.
-
-              In the simulator the WELL_PRODUCTIVITY_INDEX event is checked at
-              the start of a new report step. That implies that if an ACTIONX is
-              evaluated to true while processing report step N, this can only be
-              acted upon in the simulator at the start of the following step
-              N+1, this is special cased in the handleWELPI function when it is
-              called with actionx_mode == true. If the interaction between
-              opm-common and the simulator changes in the future this might
-              change.
-            */
-            if (keyword.name() == "WELPI")
-                this->handleWELPI(keyword, reportStep, parseContext, errors, true, result.wells());
+            std::vector<std::pair< const DeckKeyword* , std::size_t> > rftProperties;
+            input_block.push_back(keyword);
+            this->handleKeyword(reportStep,
+                                input_block,
+                                keyword,
+                                parseContext,
+                                errors,
+                                nullptr,
+                                nullptr,
+                                rftProperties);
         }
+        iterateScheduleSection(reportStep + 1, this->m_sched_deck.size(), parseContext, errors, nullptr, nullptr);
+
+        //this->m_sched_deck[reportStep].push
+
+
+        //     if (!Action::ActionX::valid_keyword(keyword.name()))
+        //         throw std::invalid_argument("The keyword: " + keyword.name() + " can not be handled in the ACTION body");
+
+        //     if (keyword.name() == "EXIT")
+        //         this->applyEXIT(keyword, reportStep);
+
+        //     if (keyword.name() == "GCONINJE")
+        //         this->handleGCONINJE(keyword, reportStep, parseContext, errors);
+
+        //     if (keyword.name() == "GLIFTOPT")
+        //         this->handleGLIFTOPT(keyword, reportStep, parseContext, errors);
+
+        //     if (keyword.name() == "UDQ")
+        //         this->updateUDQ(keyword, reportStep);
+
+        //     if (keyword.name() == "WELOPEN")
+        //         this->applyWELOPEN(keyword, reportStep, true, parseContext, errors, result.wells());
+
+        //     /*
+        //       The WELPI functionality is implemented as a two-step process
+        //       involving both code here in opm-common and opm-simulator. The
+        //       update process goes like this:
+
+        //         1. The scalar factor from the WELPI keyword is internalized in
+        //            the WellConnections objects. And the event
+        //            WELL_PRODUCTIVITY_INDEX is emitted to signal that a PI
+        //            recalculation is required.
+
+        //         2. In opm-simulators the run loop will detect
+        //            WELL_PRODUCTIVITY_INDEX event and perform the actual PI
+        //            recalculation.
+
+        //       In the simulator the WELL_PRODUCTIVITY_INDEX event is checked at
+        //       the start of a new report step. That implies that if an ACTIONX is
+        //       evaluated to true while processing report step N, this can only be
+        //       acted upon in the simulator at the start of the following step
+        //       N+1, this is special cased in the handleWELPI function when it is
+        //       called with actionx_mode == true. If the interaction between
+        //       opm-common and the simulator changes in the future this might
+        //       change.
+        //     */
+        //     if (keyword.name() == "WELPI")
+        //         this->handleWELPI(keyword, reportStep, parseContext, errors, true, result.wells());
+        // }
     }
 
 
