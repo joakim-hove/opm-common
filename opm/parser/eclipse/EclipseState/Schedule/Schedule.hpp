@@ -531,6 +531,7 @@ namespace Opm
                                     std::size_t load_end,
                                     const ParseContext& parseContext,
                                     ErrorGuard& errors,
+                                    bool runtime,
                                     const EclipseGrid* grid,
                                     const FieldPropsManager* fp);
         void addACTIONX(const Action::ActionX& action);
@@ -545,6 +546,8 @@ namespace Opm
                            const ParseContext& parseContext, ErrorGuard& errors,
                            const EclipseGrid* grid,
                            const FieldPropsManager* fp,
+                           const std::vector<std::string>& matching_wells,
+                           bool runtime,
                            std::vector<std::pair<const DeckKeyword*, std::size_t > >& rftProperties);
 
         template<template<class, class> class Map, class Type, class Key>
@@ -586,15 +589,21 @@ namespace Opm
             const ScheduleBlock& block;
             const DeckKeyword& keyword;
             const std::size_t currentStep;
+            const std::vector<std::string>& matching_wells;
+            const bool runtime;
             const EclipseGrid* grid_ptr;
             const FieldPropsManager* fp_ptr;
 
             HandlerContext(const ScheduleBlock& block_,
                            const DeckKeyword& keyword_,
-                           const std::size_t currentStep_):
+                           const std::size_t currentStep_,
+                           const std::vector<std::string>& matching_wells_,
+                           bool runtime_) :
                 block(block_),
                 keyword(keyword_),
                 currentStep(currentStep_),
+                matching_wells(matching_wells_),
+                runtime(runtime_),
                 grid_ptr(nullptr),
                 fp_ptr(nullptr)
             {}

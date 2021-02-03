@@ -1106,7 +1106,7 @@ namespace {
     }
 
     void Schedule::handleWELOPEN (const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {
-        this->applyWELOPEN(handlerContext.keyword, handlerContext.currentStep, false, parseContext, errors);
+        this->applyWELOPEN(handlerContext.keyword, handlerContext.currentStep, handlerContext.runtime, parseContext, errors, handlerContext.matching_wells);
     }
 
     void Schedule::handleWELPI(const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {

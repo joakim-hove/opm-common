@@ -121,11 +121,11 @@ namespace {
     {
         if (rst) {
             auto restart_step = rst->header.restart_info().second;
-            this->iterateScheduleSection( 0, restart_step, parseContext, errors, &grid, &fp);
+            this->iterateScheduleSection( 0, restart_step, parseContext, errors, false, &grid, &fp);
             this->load_rst(*rst, grid, fp);
-            this->iterateScheduleSection( restart_step, this->m_sched_deck.size(), parseContext, errors, &grid, &fp);
+            this->iterateScheduleSection( restart_step, this->m_sched_deck.size(), parseContext, errors, false, &grid, &fp);
         } else
-            this->iterateScheduleSection( 0, this->m_sched_deck.size(), parseContext, errors, &grid, &fp);
+            this->iterateScheduleSection( 0, this->m_sched_deck.size(), parseContext, errors, false, &grid, &fp);
 
         /*
           The code in the #ifdef SCHEDULE_DEBUG is an enforced integration test
@@ -278,6 +278,8 @@ namespace {
                                  ErrorGuard& errors,
                                  const EclipseGrid* grid,
                                  const FieldPropsManager* fp,
+                                 const std::vector<std::string>& matching_wells,
+                                 bool runtime,
                                  std::vector<std::pair<const DeckKeyword*, std::size_t > >& rftProperties) {
 
         static const std::unordered_set<std::string> require_grid = {
@@ -286,7 +288,7 @@ namespace {
         };
 
 
-        HandlerContext handlerContext { block, keyword, currentStep };
+        HandlerContext handlerContext { block, keyword, currentStep, matching_wells, runtime };
 
         /*
           The grid and fieldProps members create problems for reiterating the
@@ -356,6 +358,7 @@ private:
 void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_end,
                                       const ParseContext& parseContext ,
                                       ErrorGuard& errors,
+                                      bool runtime,
                                       const EclipseGrid* grid,
                                       const FieldPropsManager* fp) {
 
@@ -473,6 +476,8 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
                                     errors,
                                     grid,
                                     fp,
+                                    {},
+                                    runtime,
                                     rftProperties);
                 keyword_index++;
             }
@@ -559,7 +564,6 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
         auto old_status = well2.getStatus();
         bool update = false;
         if (well2.updateStatus(status)) {
-            this->snapshots[reportStep].wells.update( std::move(well2) );
             if (status == Well::Status::OPEN)
                 this->rft_config.addWellOpen(well_name, reportStep);
 
@@ -574,7 +578,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
                 this->snapshots.back().events().addEvent( ScheduleEvents::WELL_STATUS_CHANGE);
                 this->snapshots.back().wellgroup_events().addEvent( well2.name(), ScheduleEvents::WELL_STATUS_CHANGE);
             }
-
+            this->snapshots[reportStep].wells.update( std::move(well2) );
             update = true;
         }
         return update;
@@ -674,6 +678,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
                 {
                     auto well = this->snapshots[currentStep].wells.get(wname);
                     well.handleWELOPENConnections(record, connection_status, runtime);
+                    this->snapshots[currentStep].wells.update( std::move(well) );
                 }
 
                 this->snapshots.back().events().addEvent( ScheduleEvents::COMPLETION_CHANGE);
@@ -822,7 +827,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             sched_state.well_order.update( std::move(wo) );
         }
         well.setInsertIndex(sched_state.wells.size());
-        this->snapshots[report_step].wells.update( std::move(well) );
+        sched_state.wells.update( std::move(well) );
     }
 
     void Schedule::addWell(const std::string& wellName,
@@ -1208,12 +1213,13 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clock::time_point&, const Action::ActionX& action, const Action::Result& result) {
         ParseContext parseContext;
         ErrorGuard errors;
+        std::vector<std::pair< const DeckKeyword* , std::size_t> > ignored_rftProperties;
 
         this->snapshots.resize(reportStep + 1);
         auto& input_block = this->m_sched_deck[reportStep];
         for (const auto& keyword : action) {
-            std::vector<std::pair< const DeckKeyword* , std::size_t> > rftProperties;
             input_block.push_back(keyword);
+
             this->handleKeyword(reportStep,
                                 input_block,
                                 keyword,
@@ -1221,9 +1227,11 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
                                 errors,
                                 nullptr,
                                 nullptr,
-                                rftProperties);
+                                result.wells(),
+                                true,
+                                ignored_rftProperties);
         }
-        iterateScheduleSection(reportStep + 1, this->m_sched_deck.size(), parseContext, errors, nullptr, nullptr);
+        iterateScheduleSection(reportStep + 1, this->m_sched_deck.size(), parseContext, errors, true, nullptr, nullptr);
 
         //this->m_sched_deck[reportStep].push
 
