@@ -673,7 +673,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
                 const auto connection_status = Connection::StateFromString( status_str );
                 {
                     auto well = this->snapshots[currentStep].wells.get(wname);
-                    well.handleWELOPENConnections(record, connection_status);
+                    well.handleWELOPENConnections(record, connection_status, runtime);
                 }
 
                 this->snapshots.back().events().addEvent( ScheduleEvents::COMPLETION_CHANGE);
