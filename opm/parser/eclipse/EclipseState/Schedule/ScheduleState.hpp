@@ -188,7 +188,16 @@ namespace Opm {
             }
 
 
-            std::vector<std::reference_wrapper<T>> operator()() const {
+            std::vector<std::reference_wrapper<const T>> operator()() const {
+                std::vector<std::reference_wrapper<const T>> as_vector;
+                for (const auto& [_, elm_ptr] : this->m_data) {
+                    (void)_;
+                    as_vector.push_back( std::cref(*elm_ptr));
+                }
+                return as_vector;
+            }
+
+            std::vector<std::reference_wrapper<T>> operator()() {
                 std::vector<std::reference_wrapper<T>> as_vector;
                 for (const auto& [_, elm_ptr] : this->m_data) {
                     (void)_;
