@@ -300,6 +300,7 @@ namespace Opm {
         ptr_member<UDQActive> udq_active;
         ptr_member<NameOrder> well_order;
         ptr_member<GroupOrder> group_order;
+        ptr_member<UDQConfig> udq;
 
         template <typename T> struct always_false1 : std::false_type {};
 
@@ -327,6 +328,8 @@ namespace Opm {
                                   return this->well_order;
             else if constexpr ( std::is_same_v<T, GroupOrder> )
                                   return this->group_order;
+            else if constexpr ( std::is_same_v<T, UDQConfig> )
+                                  return this->udq;
             else
                 static_assert(always_false1<T>::value, "Template type <T> not supported in get()");
         }

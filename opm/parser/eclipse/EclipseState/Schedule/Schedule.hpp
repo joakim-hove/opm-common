@@ -329,7 +329,6 @@ namespace Opm
         {
             m_sched_deck.serializeOp(serializer);
             m_timeMap.serializeOp(serializer);
-            udq_config.serializeOp(serializer);
             guide_rate_config.serializeOp(serializer);
             m_glo.serializeOp(serializer);
             rft_config.serializeOp(serializer);
@@ -493,7 +492,6 @@ namespace Opm
         ScheduleStatic m_static;
         ScheduleDeck m_sched_deck;
         TimeMap m_timeMap;
-        DynamicState<std::shared_ptr<UDQConfig>> udq_config;
         DynamicState<std::shared_ptr<GuideRateConfig>> guide_rate_config;
         DynamicState<std::shared_ptr<GasLiftOpt>> m_glo;
         RFTConfig rft_config;
