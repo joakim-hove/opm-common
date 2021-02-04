@@ -484,6 +484,22 @@ namespace Opm
             }
         }
 
+        template <typename T>
+        std::vector<std::reference_wrapper<const T>> unique() const {
+            std::vector<std::reference_wrapper<const T>> values;
+            for (const auto& state : this->snapshots) {
+                if (values.empty())
+                    values.push_back( std::cref(state.get<T>().get()) );
+                else {
+                    const auto& value = state.get<T>().get();
+                    if (!(value == values.back().get()))
+                        values.push_back( std::cref(value) );
+                }
+            }
+            return values;
+        }
+
+
 
 
 
