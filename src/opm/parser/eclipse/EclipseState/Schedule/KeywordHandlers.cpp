@@ -458,9 +458,9 @@ namespace {
                         production.production_controls += static_cast<int>(Group::ProductionCMode::RESV);
 
                     if (new_group.updateProduction(production)) {
-                        auto new_config = std::make_shared<GuideRateConfig>( this->guideRateConfig(current_step) );
-                        new_config->update_group(new_group);
-                        this->guide_rate_config.update( current_step, std::move(new_config) );
+                        auto new_config = this->snapshots.back().guide_rate();
+                        new_config.update_group(new_group);
+                        this->snapshots.back().guide_rate.update( std::move(new_config));
 
                         this->snapshots.back().groups.update( std::move(new_group));
                         this->snapshots.back().events().addEvent(ScheduleEvents::GROUP_PRODUCTION_UPDATE);
@@ -541,7 +541,7 @@ namespace {
     }
 
     void Schedule::handleGLIFTOPT(const DeckKeyword& keyword, std::size_t report_step, const ParseContext& parseContext, ErrorGuard&errors) {
-        auto glo = std::make_shared<GasLiftOpt>( this->glo(report_step) );
+        auto glo = this->snapshots.back().glo();
 
         for (const auto& record : keyword) {
             const std::string& groupNamePattern = record.getItem<ParserKeywords::GLIFTOPT::GROUP_NAME>().getTrimmedString(0);
@@ -564,11 +564,11 @@ namespace {
                 group.max_lift_gas(max_lift_gas_value);
                 group.max_total_gas(max_total_gas_value);
 
-                glo->add_group(group);
+                glo.add_group(group);
             }
         }
 
-        this->m_glo.update(report_step, std::move(glo));
+        this->snapshots.back().glo.update( std::move(glo) );
     }
 
     void Schedule::handleGPMAINT(const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {
@@ -643,7 +643,7 @@ namespace {
     }
 
     void Schedule::handleLIFTOPT(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
-        auto glo = std::make_shared<GasLiftOpt>(this->glo(handlerContext.currentStep));
+        auto glo = this->snapshots.back().glo();
 
         const auto& record = handlerContext.keyword.getRecord(0);
 
@@ -652,12 +652,12 @@ namespace {
         const double min_wait = record.getItem<ParserKeywords::LIFTOPT::MIN_INTERVAL_BETWEEN_GAS_LIFT_OPTIMIZATIONS>().getSIDouble(0);
         const bool all_newton = DeckItem::to_bool( record.getItem<ParserKeywords::LIFTOPT::OPTIMISE_GAS_LIFT>().get<std::string>(0) );
 
-        glo->gaslift_increment(gaslift_increment);
-        glo->min_eco_gradient(min_eco_gradient);
-        glo->min_wait(min_wait);
-        glo->all_newton(all_newton);
+        glo.gaslift_increment(gaslift_increment);
+        glo.min_eco_gradient(min_eco_gradient);
+        glo.min_wait(min_wait);
+        glo.all_newton(all_newton);
 
-        this->m_glo.update(handlerContext.currentStep, std::move(glo));
+        this->snapshots.back().glo.update( std::move(glo) );
     }
 
     void Schedule::handleLINCOM(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
@@ -666,12 +666,12 @@ namespace {
         const auto beta  = record.getItem<ParserKeywords::LINCOM::BETA>().get<UDAValue>(0);
         const auto gamma = record.getItem<ParserKeywords::LINCOM::GAMMA>().get<UDAValue>(0);
 
-        auto new_config = std::make_shared<GuideRateConfig>( this->guideRateConfig(handlerContext.currentStep) );
-        auto new_model = new_config->model();
+        auto new_config = this->snapshots.back().guide_rate();
+        auto new_model = new_config.model();
 
         if (new_model.updateLINCOM(alpha, beta, gamma)) {
-            new_config->update_model(new_model);
-            this->guide_rate_config.update( handlerContext.currentStep, new_config );
+            new_config.update_model(new_model);
+            this->snapshots.back().guide_rate.update( std::move( new_config) );
         }
     }
 
@@ -1339,9 +1339,9 @@ namespace {
 
                 auto well = this->snapshots.back().wells.get(well_name);
                 if (well.updateWellGuideRate(availableForGroupControl, guide_rate, phase, scaling_factor)) {
-                    auto new_config = std::make_shared<GuideRateConfig>( this->guideRateConfig(handlerContext.currentStep) );
-                    new_config->update_well(well);
-                    this->guide_rate_config.update(handlerContext.currentStep, std::move(new_config));
+                    auto new_config = this->snapshots.back().guide_rate();
+                    new_config.update_well(well);
+                    this->snapshots.back().guide_rate.update( std::move(new_config) );
                     this->snapshots.back().wells.update( std::move(well) );
                 }
             }
@@ -1414,7 +1414,7 @@ namespace {
     }
 
     void Schedule::handleWLIFTOPT(const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {
-        auto glo = std::make_shared<GasLiftOpt>(this->glo(handlerContext.currentStep));
+        auto glo = this->snapshots.back().glo();
 
         for (const auto& record : handlerContext.keyword) {
             const std::string& wellNamePattern = record.getItem<ParserKeywords::WLIFTOPT::WELL>().getTrimmedString(0);
@@ -1440,11 +1440,11 @@ namespace {
                 well.min_rate(min_rate);
                 well.alloc_extra_gas(alloc_extra_gas);
 
-                glo->add_well(well);
+                glo.add_well(well);
             }
         }
 
-        this->m_glo.update(handlerContext.currentStep, std::move(glo));
+        this->snapshots.back().glo.update( std::move(glo) );
     }
 
     void Schedule::handleWLIST(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {

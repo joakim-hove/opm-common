@@ -328,8 +328,6 @@ namespace Opm
         {
             m_sched_deck.serializeOp(serializer);
             m_timeMap.serializeOp(serializer);
-            guide_rate_config.serializeOp(serializer);
-            m_glo.serializeOp(serializer);
             rft_config.serializeOp(serializer);
             restart_config.serializeOp(serializer);
             serializer.vector(snapshots);
@@ -344,8 +342,11 @@ namespace Opm
             pack_unpack<RPTConfig, Serializer>(serializer);
             pack_unpack<Action::Actions, Serializer>(serializer);
             pack_unpack<UDQActive, Serializer>(serializer);
+            pack_unpack<UDQConfig, Serializer>(serializer);
             pack_unpack<NameOrder, Serializer>(serializer);
             pack_unpack<GroupOrder, Serializer>(serializer);
+            pack_unpack<GuideRateConfig, Serializer>(serializer);
+            pack_unpack<GasLiftOpt, Serializer>(serializer);
 
             pack_unpack_map<int, VFPProdTable, Serializer>(serializer);
             pack_unpack_map<int, VFPInjTable, Serializer>(serializer);
@@ -491,8 +492,6 @@ namespace Opm
         ScheduleStatic m_static;
         ScheduleDeck m_sched_deck;
         TimeMap m_timeMap;
-        DynamicState<std::shared_ptr<GuideRateConfig>> guide_rate_config;
-        DynamicState<std::shared_ptr<GasLiftOpt>> m_glo;
         RFTConfig rft_config;
         RestartConfig restart_config;
         std::optional<int> exit_status;

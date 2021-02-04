@@ -113,8 +113,6 @@ namespace {
         m_static( python, deck, runspec ),
         m_sched_deck(deck, restart_info(rst) ),
         m_timeMap( deck , restart_info( rst )),
-        guide_rate_config(this->m_timeMap, std::make_shared<GuideRateConfig>()),
-        m_glo(this->m_timeMap, std::make_shared<GasLiftOpt>()),
         rft_config(this->m_timeMap),
         restart_config(m_timeMap, deck, parseContext, errors)
     {
@@ -247,8 +245,6 @@ namespace {
 
         result.m_static = ScheduleStatic::serializeObject();
         result.m_timeMap = TimeMap::serializeObject();
-        result.m_glo = {{std::make_shared<GasLiftOpt>(GasLiftOpt::serializeObject())}, 1};
-        result.guide_rate_config = {{std::make_shared<GuideRateConfig>(GuideRateConfig::serializeObject())}, 1};
         result.rft_config = RFTConfig::serializeObject();
         result.restart_config = RestartConfig::serializeObject();
         result.snapshots = { ScheduleState::serializeObject() };
@@ -954,9 +950,9 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
 
     void Schedule::updateGuideRateModel(const GuideRateModel& new_model, std::size_t report_step) {
-        auto new_config = std::make_shared<GuideRateConfig>(this->guideRateConfig(report_step));
-        if (new_config->update_model(new_model))
-            this->guide_rate_config.update( report_step, new_config );
+        auto new_config = this->snapshots[report_step].guide_rate();
+        if (new_config.update_model(new_model))
+            this->snapshots[report_step].guide_rate.update( std::move(new_config) );
     }
 
     /*
@@ -1158,8 +1154,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
     }
 
     const GuideRateConfig& Schedule::guideRateConfig(std::size_t timeStep) const {
-        const auto& ptr = this->guide_rate_config.get(timeStep);
-        return *ptr;
+        return this->snapshots[timeStep].guide_rate();
     }
 
     std::optional<int> Schedule::exitStatus() const {
@@ -1301,27 +1296,10 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
     }
 
     bool Schedule::operator==(const Schedule& data) const {
-        auto&& comparePtr = [](const auto& t1, const auto& t2) {
-                               if ((t1 && !t2) || (!t1 && t2))
-                                   return false;
-                               if (!t1)
-                                   return true;
-
-                               return *t1 == *t2;
-        };
-
-        auto&& compareDynState = [comparePtr](const auto& state1, const auto& state2) {
-            if (state1.data().size() != state2.data().size())
-                return false;
-            return std::equal(state1.data().begin(), state1.data().end(),
-                              state2.data().begin(), comparePtr);
-        };
 
         return this->m_timeMap == data.m_timeMap &&
                this->m_static == data.m_static &&
-               compareDynState(this->m_glo, data.m_glo) &&
-               compareDynState(this->guide_rate_config, data.guide_rate_config) &&
-               rft_config  == data.rft_config &&
+               this->rft_config  == data.rft_config &&
                this->restart_config == data.restart_config &&
                this->snapshots == data.snapshots;
      }
@@ -1457,7 +1435,7 @@ namespace {
 
 
     const GasLiftOpt& Schedule::glo(std::size_t report_step) const {
-        return *this->m_glo[report_step];
+        return this->snapshots[report_step].glo();
     }
 
 namespace {
@@ -1734,6 +1712,8 @@ void Schedule::create_first(const std::chrono::system_clock::time_point& start_t
     sched_state.well_order.update( NameOrder() );
     sched_state.group_order.update( GroupOrder( this->m_static.m_runspec.wellDimensions().maxGroupsInField()) );
     sched_state.udq.update( UDQConfig( this->m_static.m_runspec.udqParams() ));
+    sched_state.glo.update( GasLiftOpt() );
+    sched_state.guide_rate.update( GuideRateConfig() );
     this->addGroup("FIELD", 0);
 }
 

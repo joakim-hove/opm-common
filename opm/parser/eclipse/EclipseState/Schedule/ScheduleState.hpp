@@ -44,6 +44,8 @@
 #include <opm/parser/eclipse/EclipseState/Schedule/Action/Actions.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQActive.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQConfig.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/Group/GuideRateConfig.hpp>
+#include <opm/parser/eclipse/EclipseState/Schedule/GasLiftOpt.hpp>
 
 
 namespace {
@@ -302,6 +304,8 @@ namespace Opm {
         ptr_member<NameOrder> well_order;
         ptr_member<GroupOrder> group_order;
         ptr_member<UDQConfig> udq;
+        ptr_member<GasLiftOpt> glo;
+        ptr_member<GuideRateConfig> guide_rate;
 
         template <typename T> struct always_false1 : std::false_type {};
 
@@ -331,6 +335,10 @@ namespace Opm {
                                   return this->group_order;
             else if constexpr ( std::is_same_v<T, UDQConfig> )
                                   return this->udq;
+            else if constexpr ( std::is_same_v<T, GasLiftOpt> )
+                                  return this->glo;
+            else if constexpr ( std::is_same_v<T, GuideRateConfig> )
+                                  return this->guide_rate;
             else
                 static_assert(always_false1<T>::value, "Template type <T> not supported in get()");
         }
@@ -361,6 +369,10 @@ namespace Opm {
                                   return this->group_order;
             else if constexpr ( std::is_same_v<T, UDQConfig> )
                                   return this->udq;
+            else if constexpr ( std::is_same_v<T, GasLiftOpt> )
+                                  return this->glo;
+            else if constexpr ( std::is_same_v<T, GuideRateConfig> )
+                                  return this->guide_rate;
             else
                 static_assert(always_false1<T>::value, "Template type <T> not supported in get()");
         }
