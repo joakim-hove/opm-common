@@ -821,12 +821,11 @@ namespace {
     }
 
     void Schedule::handleUDQ(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
-        const auto& current = *this->udq_config.get(handlerContext.currentStep);
-        std::shared_ptr<UDQConfig> new_udq = std::make_shared<UDQConfig>(current);
+        auto new_udq = this->snapshots.back().udq();
         for (const auto& record : handlerContext.keyword)
-            new_udq->add_record(record, handlerContext.keyword.location(), handlerContext.currentStep);
+            new_udq.add_record(record, handlerContext.keyword.location(), handlerContext.currentStep);
 
-        this->udq_config.update(handlerContext.currentStep, new_udq);
+        this->snapshots.back().udq.update( std::move(new_udq) );
     }
 
     void Schedule::handleVAPPARS(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {

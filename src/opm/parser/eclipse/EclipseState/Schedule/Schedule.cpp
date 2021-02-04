@@ -113,7 +113,6 @@ namespace {
         m_static( python, deck, runspec ),
         m_sched_deck(deck, restart_info(rst) ),
         m_timeMap( deck , restart_info( rst )),
-        udq_config(this->m_timeMap, std::make_shared<UDQConfig>(runspec.udqParams())),
         guide_rate_config(this->m_timeMap, std::make_shared<GuideRateConfig>()),
         m_glo(this->m_timeMap, std::make_shared<GasLiftOpt>()),
         rft_config(this->m_timeMap),
@@ -248,7 +247,6 @@ namespace {
 
         result.m_static = ScheduleStatic::serializeObject();
         result.m_timeMap = TimeMap::serializeObject();
-        result.udq_config = {{std::make_shared<UDQConfig>(UDQConfig::serializeObject())}, 1};
         result.m_glo = {{std::make_shared<GasLiftOpt>(GasLiftOpt::serializeObject())}, 1};
         result.guide_rate_config = {{std::make_shared<GuideRateConfig>(GuideRateConfig::serializeObject())}, 1};
         result.rft_config = RFTConfig::serializeObject();
@@ -597,25 +595,6 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
     }
 
 
-    /*
-      This routine is called when UDQ keywords is added in an ACTIONX block.
-    */
-    void Schedule::updateUDQ(const DeckKeyword& keyword, std::size_t current_step) {
-        const auto& current = *this->udq_config.get(current_step);
-        std::shared_ptr<UDQConfig> new_udq = std::make_shared<UDQConfig>(current);
-        for (const auto& record : keyword)
-            new_udq->add_record(record, keyword.location(), current_step);
-
-        auto next_index = this->udq_config.update_equal(current_step, new_udq);
-        if (next_index) {
-            for (const auto& [report_step, udq_ptr] : this->udq_config.unique() ) {
-                if (report_step > current_step) {
-                    for (const auto& record : keyword)
-                        udq_ptr->add_record(record, keyword.location(), current_step);
-                }
-            }
-        }
-    }
 
      void Schedule::applyWELOPEN(const DeckKeyword& keyword, std::size_t currentStep, bool runtime, const ParseContext& parseContext, ErrorGuard& errors, const std::vector<std::string>& matching_wells) {
 
@@ -1166,7 +1145,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
 
     void Schedule::filterConnections(const ActiveGridCells& grid) {
-        for (auto& sched_state : *this) {
+        for (auto& sched_state : this->snapshots) {
             for (auto& well : sched_state.wells()) {
                 well.get().filterConnections(grid);
             }
@@ -1175,15 +1154,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
 
     const UDQConfig& Schedule::getUDQConfig(std::size_t timeStep) const {
-        const auto& ptr = this->udq_config.get(timeStep);
-        return *ptr;
-    }
-
-    std::vector<const UDQConfig*> Schedule::udqConfigList() const {
-        std::vector<const UDQConfig*> udq_list;
-        for (const auto& udq_pair : this->udq_config.unique())
-            udq_list.push_back( udq_pair.second.get() );
-        return udq_list;
+        return this->snapshots[timeStep].udq.get();
     }
 
     const GuideRateConfig& Schedule::guideRateConfig(std::size_t timeStep) const {
@@ -1349,7 +1320,6 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
         return this->m_timeMap == data.m_timeMap &&
                this->m_static == data.m_static &&
                compareDynState(this->m_glo, data.m_glo) &&
-               compareDynState(this->udq_config, data.udq_config) &&
                compareDynState(this->guide_rate_config, data.guide_rate_config) &&
                rft_config  == data.rft_config &&
                this->restart_config == data.restart_config &&
@@ -1763,6 +1733,7 @@ void Schedule::create_first(const std::chrono::system_clock::time_point& start_t
     sched_state.udq_active.update( UDQActive() );
     sched_state.well_order.update( NameOrder() );
     sched_state.group_order.update( GroupOrder( this->m_static.m_runspec.wellDimensions().maxGroupsInField()) );
+    sched_state.udq.update( UDQConfig( this->m_static.m_runspec.udqParams() ));
     this->addGroup("FIELD", 0);
 }
 

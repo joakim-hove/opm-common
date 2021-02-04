@@ -153,6 +153,8 @@ bool ScheduleState::operator==(const ScheduleState& other) const {
            this->wlist_manager.get() == other.wlist_manager.get() &&
            this->rpt_config.get() == other.rpt_config.get() &&
            this->udq_active.get() == other.udq_active.get() &&
+           this->udq.get() == other.udq.get() &&
+           this->wells == other.wells &&
            this->groups == other.groups &&
            this->vfpprod == other.vfpprod &&
            this->vfpinj == other.vfpinj;
@@ -184,6 +186,7 @@ ScheduleState ScheduleState::serializeObject() {
     ts.network.update( Network::ExtNetwork::serializeObject() );
     ts.well_order.update( NameOrder::serializeObject() );
     ts.group_order.update( GroupOrder::serializeObject() );
+    ts.udq.update( UDQConfig::serializeObject() );
 
     return ts;
 }

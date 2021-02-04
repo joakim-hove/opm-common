@@ -277,7 +277,6 @@ namespace Opm
         Well::ProducerCMode getGlobalWhistctlMmode(std::size_t timestep) const;
 
         const UDQConfig& getUDQConfig(std::size_t timeStep) const;
-        std::vector<const UDQConfig*> udqConfigList() const;
         void evalAction(const SummaryState& summary_state, std::size_t timeStep);
 
         GTNode groupTree(std::size_t report_step) const;
@@ -484,22 +483,6 @@ namespace Opm
             }
         }
 
-        template <typename T>
-        std::vector<std::reference_wrapper<const T>> unique() const {
-            std::vector<std::reference_wrapper<const T>> values;
-            for (const auto& state : this->snapshots) {
-                if (values.empty())
-                    values.push_back( std::cref(state.get<T>().get()) );
-                else {
-                    const auto& value = state.get<T>().get();
-                    if (!(value == values.back().get()))
-                        values.push_back( std::cref(value) );
-                }
-            }
-            return values;
-        }
-
-
 
 
 
@@ -553,7 +536,6 @@ namespace Opm
         void addGroup(const std::string& groupName , std::size_t timeStep);
         void addWell(const std::string& wellName, const DeckRecord& record, std::size_t timeStep, Connection::Order connection_order);
         void checkIfAllConnectionsIsShut(std::size_t currentStep);
-        void updateUDQ(const DeckKeyword& keyword, std::size_t current_step);
         void handleKeyword(std::size_t currentStep,
                            const ScheduleBlock& block,
                            const DeckKeyword& keyword,
