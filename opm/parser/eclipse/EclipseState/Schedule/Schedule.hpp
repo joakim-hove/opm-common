@@ -28,8 +28,6 @@
 #include <opm/parser/eclipse/Python/Python.hpp>
 #include <opm/parser/eclipse/EclipseState/IOConfig/RestartConfig.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/GasLiftOpt.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/DynamicState.hpp>
-#include <opm/parser/eclipse/EclipseState/Schedule/DynamicVector.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/Group.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GTNode.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/Group/GuideRateConfig.hpp>
@@ -51,46 +49,6 @@
 #include <opm/io/eclipse/rst/state.hpp>
 
 
-/*
-  The DynamicState<std::shared_ptr<T>> pattern: The quantities in the Schedule
-  section like e.g. wellrates and completion properties are typically
-  characterized by the following behaviour:
-
-    1. They can be updated repeatedly at arbitrary points in the Schedule
-       section.
-
-    2. The value set at one timestep will apply until is explicitly set again at
-       a later timestep.
-
-  These properties are typically stored in a DynamicState<T> container; the
-  DynamicState<T> class is a container which implements this semantics:
-
-    1. It is legitimate to ask for an out-of-range value, you will then get the
-       last value which has been set.
-
-    2. When assigning an out-of-bounds value the container will append the
-       currently set value until correct length has been reached, and then the
-       new value will be assigned.
-
-    3. The DynamicState<T> has an awareness of the total length of the time
-       axis, trying to access values beyound that is illegal.
-
-  For many of the non-trival objects like eg Well and Group the DynamicState<>
-  contains a shared pointer to an underlying object, that way the fill operation
-  when the vector is resized is quite fast. The following pattern is quite
-  common for the Schedule implementation:
-
-
-       // Create a new well object.
-       std::shared_ptr<Well> new_well = this->getWell( well_name, time_step );
-
-       // Update the new well object with new settings from the deck, the
-       // updateXXXX() method will return true if the well object was actually
-       // updated:
-       if (new_well->updateRate( new_rate ))
-           this->dynamic_state.update( time_step, new_well);
-
-*/
 
 namespace Opm
 {
@@ -162,11 +120,6 @@ namespace Opm
 
     class Schedule {
     public:
-        template<class T1, class T2> using Map = std::map<T1,T2>;
-        using GroupMap = Map<std::string, DynamicState<std::shared_ptr<Group>>>;
-        template<class T1, class T2> using UnorderedMap = std::unordered_map<T1,T2>;
-        using WellMap = UnorderedMap<std::string, DynamicState<std::shared_ptr<Well>>>;
-
         Schedule() = default;
         explicit Schedule(std::shared_ptr<const Python> python_handle);
         Schedule(const Deck& deck,
@@ -488,7 +441,6 @@ namespace Opm
 
 
     private:
-        template<class Key, class Value> using Map2 = std::map<Key,Value>;
         ScheduleStatic m_static;
         ScheduleDeck m_sched_deck;
         TimeMap m_timeMap;
@@ -544,33 +496,6 @@ namespace Opm
                            const std::vector<std::string>& matching_wells,
                            bool runtime,
                            std::vector<std::pair<const DeckKeyword*, std::size_t > >& rftProperties);
-
-        template<template<class, class> class Map, class Type, class Key>
-        std::pair<std::vector<Type>, std::vector<std::pair<Key, std::vector<std::size_t>>>>
-        splitDynMap(const Map<Key, Opm::DynamicState<Type>>& map)
-        {
-            // we have to pack the unique ptrs separately, and use an index map
-            // to allow reconstructing the appropriate structures.
-            std::vector<std::pair<Key, std::vector<std::size_t>>> asMap;
-            std::vector<Type> unique;
-            for (const auto& it : map) {
-                auto indices = it.second.split(unique);
-                asMap.push_back(std::make_pair(it.first, indices));
-            }
-
-            return std::make_pair(unique, asMap);
-        }
-
-        template<template<class, class> class Map, class Type, class Key>
-        void reconstructDynMap(const std::vector<Type>& unique,
-                               const std::vector<std::pair<Key, std::vector<std::size_t>>>& asMap,
-                               Map<Key, Opm::DynamicState<Type>>& result)
-        {
-            for (const auto& it : asMap) {
-                result[it.first].reconstruct(unique, it.second);
-            }
-        }
-
 
         static std::string formatDate(std::time_t t);
         std::string simulationDays(std::size_t currentStep) const;
