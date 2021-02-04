@@ -1255,36 +1255,35 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
 
 
     void Schedule::applyWellProdIndexScaling(const std::string& well_name, const std::size_t reportStep, const double scalingFactor) {
-        throw std::logic_error("WELPI not implemented");
-        // WELPI: auto wstat = this->wells_static.find(well_name);
-        // WELPI: if (wstat == this->wells_static.end())
-        // WELPI:     return;
+        auto wstat = this->wells_static.find(well_name);
+        if (wstat == this->wells_static.end())
+            return;
 
-        // WELPI: auto unique_well_instances = wstat->second.unique();
+        auto unique_well_instances = wstat->second.unique();
 
-        // WELPI: auto end   = unique_well_instances.end();
-        // WELPI: auto start = std::lower_bound(unique_well_instances.begin(), end, reportStep,
-        // WELPI:     [](const auto& time_well_pair, const auto lookup) -> bool
-        // WELPI: {
-        // WELPI:     //     time                 < reportStep
-        // WELPI:     return time_well_pair.first < lookup;
-        // WELPI: });
+        auto end   = unique_well_instances.end();
+        auto start = std::lower_bound(unique_well_instances.begin(), end, reportStep,
+            [](const auto& time_well_pair, const auto lookup) -> bool
+        {
+            //     time                 < reportStep
+            return time_well_pair.first < lookup;
+        });
 
-        // WELPI: if (start == end)
-        // WELPI:     // Report step after last?
-        // WELPI:     return;
+        if (start == end)
+            // Report step after last?
+            return;
 
-        // WELPI: // Relies on wells_static being OrderedMap<string, DynamicState<shared_ptr<>>>
-        // WELPI: // which means unique_well_instances is a vector<pair<report_step, shared_ptr<>>>
-        // WELPI: std::vector<bool> scalingApplicable;
-        // WELPI: auto wellPtr = start->second;
-        // WELPI: wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
+        // Relies on wells_static being OrderedMap<string, DynamicState<shared_ptr<>>>
+        // which means unique_well_instances is a vector<pair<report_step, shared_ptr<>>>
+        std::vector<bool> scalingApplicable;
+        auto wellPtr = start->second;
+        wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
 
-        // WELPI: for (; start != end; ++start)
-        // WELPI:     if (! wellPtr->hasSameConnectionsPointers(*start->second)) {
-        // WELPI:         wellPtr = start->second;
-        // WELPI:         wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
-        // WELPI:     }
+        for (; start != end; ++start)
+            if (! wellPtr->hasSameConnectionsPointers(*start->second)) {
+                wellPtr = start->second;
+                wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
+            }
     }
 
     RestartConfig& Schedule::restart() {
