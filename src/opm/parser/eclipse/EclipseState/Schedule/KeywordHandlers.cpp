@@ -180,9 +180,11 @@ namespace {
         // WELSPECS keyword we need to force a calculation of the wells
         // reference depth exactly when the COMPDAT keyword has been completely
         // processed.
-        for (const auto& well : this->snapshots.back().wells())
-            well.get().updateRefDepth();
-
+        for (const auto& wname : wells) {
+            auto& well = this->snapshots.back().wells.get( wname );
+            well.updateRefDepth();
+            this->snapshots.back().wells.update( std::move(well));
+        }
     }
 
     void Schedule::handleCOMPLUMP(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
@@ -1752,7 +1754,7 @@ namespace {
 
     void Schedule::handleWPAVE(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
         auto wpave = PAvg( handlerContext.keyword.getRecord(0) );
-        for (const auto& wname : this->wellNames(handlerContext.currentStep)) gs
+        for (const auto& wname : this->wellNames(handlerContext.currentStep))
             this->updateWPAVE(wname, handlerContext.currentStep, wpave );
 
         auto& sched_state = this->snapshots.back();

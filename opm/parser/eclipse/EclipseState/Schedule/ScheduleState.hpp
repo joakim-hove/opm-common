@@ -183,6 +183,10 @@ namespace Opm {
                 return *this->m_data.at(key);
             }
 
+            T& get(const K& key) {
+                return *this->m_data.at(key);
+            }
+
 
             std::vector<std::reference_wrapper<T>> operator()() const {
                 std::vector<std::reference_wrapper<T>> as_vector;

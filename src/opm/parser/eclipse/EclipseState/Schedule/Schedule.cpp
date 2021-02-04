@@ -922,20 +922,23 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
       settings have changed will not be included.
     */
     std::vector<std::string> Schedule::changed_wells(std::size_t report_step) const {
-        if (report_step == 0)
-            return {};
-
         std::vector<std::string> wells;
         const auto& state = this->snapshots[report_step];
-        const auto& prev_state = this->snapshots[report_step - 1];
-        for (const auto& well_ref : state.wells()) {
-            const auto& wname = well_ref.get().name();
-            if (prev_state.wells.has(wname)) {
-                const auto& prev_well = prev_state.wells.get( wname );
-                if (!prev_well.cmp_structure(well_ref.get()))
+        const auto& all_wells = state.wells();
+
+        if (report_step == 0)
+            std::transform( all_wells.begin(), all_wells.end(), std::back_inserter(wells), [] (const auto& well_ref) { return well_ref.get().name(); });
+        else {
+            const auto& prev_state = this->snapshots[report_step - 1];
+            for (const auto& well_ref : all_wells) {
+                const auto& wname = well_ref.get().name();
+                if (prev_state.wells.has(wname)) {
+                    const auto& prev_well = prev_state.wells.get( wname );
+                    if (!prev_well.cmp_structure(well_ref.get()))
+                        wells.push_back( wname );
+                } else
                     wells.push_back( wname );
-            } else
-                wells.push_back( wname );
+            }
         }
 
         return wells;
