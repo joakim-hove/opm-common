@@ -1255,35 +1255,30 @@ void Schedule::applyAction(std::size_t reportStep, const std::chrono::system_clo
 
 
     void Schedule::applyWellProdIndexScaling(const std::string& well_name, const std::size_t reportStep, const double scalingFactor) {
-        auto wstat = this->wells_static.find(well_name);
-        if (wstat == this->wells_static.end())
+        if (reportStep >= this->snapshots.size())
             return;
 
-        auto unique_well_instances = wstat->second.unique();
-
-        auto end   = unique_well_instances.end();
-        auto start = std::lower_bound(unique_well_instances.begin(), end, reportStep,
-            [](const auto& time_well_pair, const auto lookup) -> bool
-        {
-            //     time                 < reportStep
-            return time_well_pair.first < lookup;
-        });
-
-        if (start == end)
-            // Report step after last?
+        if (!this->snapshots[reportStep].wells.has(well_name))
             return;
 
-        // Relies on wells_static being OrderedMap<string, DynamicState<shared_ptr<>>>
-        // which means unique_well_instances is a vector<pair<report_step, shared_ptr<>>>
+        std::vector<Well *> unique_wells;
+        for (std::size_t step = reportStep; step < this->snapshots.size(); step++) {
+            auto& well = this->snapshots[step].wells.get(well_name);
+            if (unique_wells.empty() || (!(*unique_wells.back() == well)))
+                unique_wells.push_back( &well );
+        }
+
         std::vector<bool> scalingApplicable;
-        auto wellPtr = start->second;
-        wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
+        auto prev_well = unique_wells[0];
+        prev_well->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
 
-        for (; start != end; ++start)
-            if (! wellPtr->hasSameConnectionsPointers(*start->second)) {
-                wellPtr = start->second;
+        for (std::size_t well_index = 1; well_index < unique_wells.size(); well_index++) {
+            auto wellPtr = unique_wells[well_index];
+            if (! wellPtr->hasSameConnectionsPointers(*prev_well)) {
                 wellPtr->applyWellProdIndexScaling(scalingFactor, scalingApplicable);
+                prev_well = wellPtr;
             }
+        }
     }
 
     RestartConfig& Schedule::restart() {
