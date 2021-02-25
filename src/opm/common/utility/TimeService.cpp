@@ -69,6 +69,27 @@ namespace {
 
 }
 
+namespace Opm {
+namespace TimeService {
+
+std::time_t to_time_t(const time_point& tp) {
+    return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+}
+
+time_point from_time_t(std::time_t t) {
+    return time_point(std::chrono::seconds(t));
+}
+
+
+time_point now() {
+    time_point epoch;
+    auto default_now = std::chrono::system_clock::now();
+    return epoch + std::chrono::duration_cast<std::chrono::milliseconds>(default_now.time_since_epoch());
+}
+
+}
+}
+
 Opm::TimeStampUTC::TimeStampUTC(const std::time_t tp)
 {
     auto t = tp;

@@ -60,6 +60,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <opm/common/utility/FileSystem.hpp>
+#include <opm/common/utility/TimeService.hpp>
 
 using namespace Opm;
 
@@ -276,7 +277,7 @@ BOOST_AUTO_TEST_CASE(test_RFT)
         const auto start_time = schedule.posixStartTime();
         const auto step_time  = timeStamp(::Opm::EclIO::ERft::RftDate{ 2008, 10, 10 });
 
-        SummaryState st(std::chrono::system_clock::now());
+        SummaryState st(TimeService::now());
         Action::State action_state;
         UDQState udq_state(1234);
 
@@ -397,7 +398,7 @@ BOOST_AUTO_TEST_CASE(test_RFT2)
 
         Schedule schedule(deck, eclipseState, python);
         SummaryConfig summary_config( deck, schedule, eclipseState.getTableManager( ), eclipseState.aquifer() );
-        SummaryState st(std::chrono::system_clock::now());
+        SummaryState st(Opm::TimeService::now());
         Action::State action_state;
         UDQState udq_state(10);
 
