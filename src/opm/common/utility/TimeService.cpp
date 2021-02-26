@@ -48,13 +48,7 @@ time_point now() {
 namespace {
     std::time_t advance(const std::time_t tp, const double sec)
     {
-        //using TP      = std::chrono::time_point<std::chrono::system_clock>;
-        //using DoubSec = std::chrono::duration<double, std::chrono::seconds::period>;
-
-        //const auto t = std::chrono::system_clock::from_time_t(tp) +
-        //    std::chrono::duration_cast<TP::duration>(DoubSec(sec));
-
-        const auto t = Opm::TimeService::from_time_t(tp) + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(sec));
+        const auto t = Opm::TimeService::from_time_t(tp) + std::chrono::duration_cast<Opm::time_point::duration>(std::chrono::duration<double>(sec));
         return Opm::TimeService::to_time_t(t);
     }
 
