@@ -23,18 +23,39 @@
 #include <ctime>
 #include <utility>
 
+namespace Opm {
+namespace TimeService {
+
+std::time_t to_time_t(const time_point& tp) {
+    //return tp.time_since_epoch().count() / 1000;
+    return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
+}
+
+time_point from_time_t(std::time_t t) {
+    return time_point(std::chrono::seconds(t));
+}
+
+
+time_point now() {
+    time_point epoch;
+    auto default_now = std::chrono::system_clock::now();
+    return epoch + std::chrono::duration_cast<std::chrono::milliseconds>(default_now.time_since_epoch());
+}
+
+}
+}
+
 namespace {
     std::time_t advance(const std::time_t tp, const double sec)
     {
-        using namespace std::chrono;
+        //using TP      = std::chrono::time_point<std::chrono::system_clock>;
+        //using DoubSec = std::chrono::duration<double, std::chrono::seconds::period>;
 
-        using TP      = time_point<system_clock>;
-        using DoubSec = duration<double, seconds::period>;
+        //const auto t = std::chrono::system_clock::from_time_t(tp) +
+        //    std::chrono::duration_cast<TP::duration>(DoubSec(sec));
 
-        const auto t = system_clock::from_time_t(tp) +
-            duration_cast<TP::duration>(DoubSec(sec));
-
-        return system_clock::to_time_t(t);
+        const auto t = Opm::TimeService::from_time_t(tp) + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(sec));
+        return Opm::TimeService::to_time_t(t);
     }
 
     std::time_t makeUTCTime(std::tm timePoint)
@@ -69,26 +90,6 @@ namespace {
 
 }
 
-namespace Opm {
-namespace TimeService {
-
-std::time_t to_time_t(const time_point& tp) {
-    return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
-}
-
-time_point from_time_t(std::time_t t) {
-    return time_point(std::chrono::seconds(t));
-}
-
-
-time_point now() {
-    time_point epoch;
-    auto default_now = std::chrono::system_clock::now();
-    return epoch + std::chrono::duration_cast<std::chrono::milliseconds>(default_now.time_since_epoch());
-}
-
-}
-}
 
 Opm::TimeStampUTC::TimeStampUTC(const std::time_t tp)
 {

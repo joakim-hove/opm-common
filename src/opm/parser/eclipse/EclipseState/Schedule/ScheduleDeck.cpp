@@ -217,7 +217,11 @@ void ScheduleDeck::add_TSTEP(const DeckKeyword& TSTEPKeyword, ScheduleDeckContex
     const auto &item = TSTEPKeyword.getRecord(0).getItem(0);
     for (size_t itemIndex = 0; itemIndex < item.data_size(); itemIndex++) {
         auto seconds = static_cast<int64_t>(item.getSIDouble(itemIndex));
-        auto next_time = context.last_time + std::chrono::seconds( seconds );
+        //auto next_time = context.last_time + std::chrono::seconds( seconds );
+        auto next_time = context.last_time + std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::duration<double>(item.getSIDouble(itemIndex)));
+        printf("next_time: %ld %ld\n", next_time.time_since_epoch(), TimeService::to_time_t(next_time));
+        if (next_time.time_since_epoch().count() < 0)
+            printf("What the fuck - negative time\n");
         this->add_block(ScheduleTimeType::TSTEP, next_time, context, TSTEPKeyword.location());
     }
 }

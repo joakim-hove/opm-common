@@ -25,7 +25,7 @@
 
 namespace Opm {
 
-    using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<long, std::ratio<1,1000>>>;
+    using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::duration<int64_t, std::ratio<1,1000>>>;
 
     namespace TimeService {
     std::time_t to_time_t(const time_point& tp);

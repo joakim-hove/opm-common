@@ -1115,7 +1115,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             auto t0 = TimeService::to_time_t(this->snapshots[0].start_time());
             auto d = t1 - t0;
 
-            printf("%ld -  %ld = %ld.    Returning: %ld \n", t1, t0, d ,
+            printf("seconds: %ld -  %ld = %ld.    Returning: %ld \n", t1, t0, d ,
                    std::chrono::duration_cast<std::chrono::seconds>(elapsed).count());
         }
         return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
@@ -1127,7 +1127,16 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
     double Schedule::stepLength(std::size_t timeStep) const {
         auto elapsed = this->snapshots[timeStep].end_time() - this->snapshots[timeStep].start_time();
-        return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
+        {
+            auto t1 = TimeService::to_time_t(this->snapshots[timeStep].start_time());
+            auto t0 = TimeService::to_time_t(this->snapshots[0].start_time());
+            auto d = t1 - t0;
+
+            printf("length: %ld -  %ld = %ld.    Returning: %ld \n", t1, t0, d ,
+                   std::chrono::duration_cast<std::chrono::seconds>(elapsed).count());
+        }
+        return elapsed.count() / 1000;
+        //return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
     }
 
 

@@ -37,7 +37,7 @@ namespace {
   opm-simulators:opm/simulators/utils/ParallelRestart.cpp goes via std::time_t.
 */
 time_point clamp_time(time_point t) {
-    return TimeService::from_time_t( std::chrono::system_clock::to_time_t( t ) );
+    return TimeService::from_time_t( TimeService::to_time_t( t ) );
 }
 
 }
