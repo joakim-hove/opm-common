@@ -31,6 +31,9 @@ namespace Opm {
     std::time_t to_time_t(const time_point& tp);
     time_point from_time_t(std::time_t t);
     time_point now();
+
+    std::time_t advance(const std::time_t tp, const double sec);
+    std::time_t makeUTCTime(std::tm timePoint);
     }
 
     class TimeStampUTC

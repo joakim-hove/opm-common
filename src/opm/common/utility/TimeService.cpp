@@ -42,30 +42,32 @@ time_point now() {
     return epoch + std::chrono::duration_cast<std::chrono::milliseconds>(default_now.time_since_epoch());
 }
 
+std::time_t advance(const std::time_t tp, const double sec)
+{
+    const auto t = Opm::TimeService::from_time_t(tp) + std::chrono::duration_cast<Opm::time_point::duration>(std::chrono::duration<double>(sec));
+    return Opm::TimeService::to_time_t(t);
+}
+
+std::time_t makeUTCTime(std::tm timePoint)
+{
+    const auto ltime =  std::mktime(&timePoint);
+    auto       tmval = *std::gmtime(&ltime); // Mutable.
+
+    // offset =  ltime - tmval
+    //        == #seconds by which 'ltime' is AHEAD of tmval.
+    const auto offset =
+        std::difftime(ltime, std::mktime(&tmval));
+
+    // Advance 'ltime' by 'offset' so that std::gmtime(return value) will
+    // have the same broken-down elements as 'tp'.
+    return advance(ltime, offset);
+}
+
 }
 }
 
 namespace {
-    std::time_t advance(const std::time_t tp, const double sec)
-    {
-        const auto t = Opm::TimeService::from_time_t(tp) + std::chrono::duration_cast<Opm::time_point::duration>(std::chrono::duration<double>(sec));
-        return Opm::TimeService::to_time_t(t);
-    }
 
-    std::time_t makeUTCTime(std::tm timePoint)
-    {
-        const auto ltime =  std::mktime(&timePoint);
-        auto       tmval = *std::gmtime(&ltime); // Mutable.
-
-        // offset =  ltime - tmval
-        //        == #seconds by which 'ltime' is AHEAD of tmval.
-        const auto offset =
-            std::difftime(ltime, std::mktime(&tmval));
-
-        // Advance 'ltime' by 'offset' so that std::gmtime(return value) will
-        // have the same broken-down elements as 'tp'.
-        return advance(ltime, offset);
-    }
 
 
     std::tm makeTm(const Opm::TimeStampUTC& tp) {
@@ -160,7 +162,7 @@ Opm::TimeStampUTC& Opm::TimeStampUTC::microseconds(const int us)
 
 std::time_t Opm::asTimeT(const TimeStampUTC& tp)
 {
-    return makeUTCTime(makeTm(tp));
+    return Opm::TimeService::makeUTCTime(makeTm(tp));
 }
 
 std::time_t Opm::asLocalTimeT(const TimeStampUTC& tp)
@@ -170,7 +172,7 @@ std::time_t Opm::asLocalTimeT(const TimeStampUTC& tp)
 }
 
 Opm::TimeStampUTC Opm::operator+(const Opm::TimeStampUTC& lhs, std::chrono::duration<double> delta) {
-    return Opm::TimeStampUTC( advance(Opm::asTimeT(lhs) , delta.count()) );
+    return Opm::TimeStampUTC( Opm::TimeService::advance(Opm::asTimeT(lhs) , delta.count()) );
 }
 
 
