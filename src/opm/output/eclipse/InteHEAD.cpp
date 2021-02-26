@@ -2,6 +2,7 @@
 
 #include <opm/output/eclipse/VectorItems/intehead.hpp>
 #include <opm/parser/eclipse/Units/UnitSystem.hpp>
+#include <opm/common/utility/TimeService.hpp>
 
 #include <algorithm>
 #include <chrono>

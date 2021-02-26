@@ -1109,7 +1109,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
         if (timeStep >= this->snapshots.size())
             throw std::logic_error(fmt::format("seconds({}) - invalid timeStep. Valid range [0,{}>", timeStep, this->snapshots.size()));
 
-        std::chrono::duration<double> elapsed = this->snapshots[timeStep].start_time() - this->snapshots[0].start_time();
+        auto elapsed = this->snapshots[timeStep].start_time() - this->snapshots[0].start_time();
         {
             auto t1 = TimeService::to_time_t(this->snapshots[timeStep].start_time());
             auto t0 = TimeService::to_time_t(this->snapshots[0].start_time());
@@ -1135,7 +1135,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             printf("length: %ld -  %ld = %ld.    Returning: %ld \n", t1, t0, d ,
                    std::chrono::duration_cast<std::chrono::seconds>(elapsed).count());
         }
-        return elapsed.count() / 1000;
+        return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
         //return std::chrono::duration_cast<std::chrono::seconds>(elapsed).count();
     }
 

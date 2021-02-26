@@ -83,8 +83,7 @@ namespace {
         timePoint.tm_mon  =   4 - 1; // April
         timePoint.tm_mday =   9;     // 9th
 
-        return Opm::TimeService::from_time_t(
-            ::Opm::RestartIO::makeUTCTime(timePoint));
+        return Opm::TimeService::from_time_t( Opm::TimeService::makeUTCTime(timePoint) );
     }
 
     std::chrono::duration<double, std::chrono::seconds::period> tstep_123()

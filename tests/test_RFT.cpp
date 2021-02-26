@@ -241,7 +241,7 @@ namespace {
         tp.tm_mon  = std::get<1>(date) -    1; // 0..11
         tp.tm_mday = std::get<2>(date);        // 1..31
 
-        return ::Opm::RestartIO::makeUTCTime(tp);
+        return Opm::TimeService::makeUTCTime(tp);
     }
 } // Anonymous namespace
 
