@@ -26,12 +26,14 @@
 namespace Opm {
 namespace TimeService {
 
-std::time_t to_time_t(const time_point& tp) {
-    return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count();
-}
+const time_t system_clock_epoch = std::chrono::system_clock::to_time_t({});
 
 time_point from_time_t(std::time_t t) {
-    return time_point(std::chrono::seconds(t));
+    return time_point(std::chrono::seconds(t - system_clock_epoch));
+}
+
+std::time_t to_time_t(const time_point& tp) {
+    return std::chrono::duration_cast<std::chrono::seconds>(tp.time_since_epoch()).count() + system_clock_epoch;
 }
 
 
