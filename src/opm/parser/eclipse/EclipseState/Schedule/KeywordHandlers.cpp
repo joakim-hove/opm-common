@@ -792,6 +792,11 @@ namespace {
 
     void Schedule::handleRPTSCHED(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
         this->snapshots.back().rpt_config.update( RPTConfig(handlerContext.keyword ));
+        this->snapshots.back().rst_config.update( RSTConfig(handlerContext.keyword ));
+    }
+
+    void Schedule::handleRPTRST(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
+        this->snapshots.back().rst_config.update( RSTConfig(handlerContext.keyword ));
     }
 
     void Schedule::handleTUNING(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
@@ -1965,6 +1970,7 @@ namespace {
             { "MULTZ-"  , &Schedule::handleMXUNSUPP },
             { "NODEPROP", &Schedule::handleNODEPROP },
             { "NUPCOL"  , &Schedule::handleNUPCOL   },
+            { "RPTRST"  , &Schedule::handleRPTRST   },
             { "RPTSCHED", &Schedule::handleRPTSCHED },
             { "TUNING"  , &Schedule::handleTUNING   },
             { "UDQ"     , &Schedule::handleUDQ      },

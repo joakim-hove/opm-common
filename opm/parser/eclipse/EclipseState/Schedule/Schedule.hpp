@@ -24,6 +24,7 @@
 #include <optional>
 #include <unordered_set>
 
+#include <opm/parser/eclipse/Deck/DeckSection.hpp>
 #include <opm/parser/eclipse/Parser/ParseContext.hpp>
 #include <opm/parser/eclipse/Python/Python.hpp>
 #include <opm/parser/eclipse/EclipseState/IOConfig/RestartConfig.hpp>
@@ -71,6 +72,7 @@ namespace Opm
         MessageLimits m_deck_message_limits;
         UnitSystem m_unit_system;
         Runspec m_runspec;
+        RSTConfig rst_config;
 
         ScheduleStatic() = default;
 
@@ -85,8 +87,10 @@ namespace Opm
             m_input_path(deck.getInputPath()),
             m_deck_message_limits( deck ),
             m_unit_system( deck.getActiveUnitSystem() ),
-            m_runspec( runspec )
-        {}
+            m_runspec( runspec ),
+            rst_config( SOLUTIONSection(deck) )
+        {
+        }
 
         template<class Serializer>
         void serializeOp(Serializer& serializer)
@@ -95,6 +99,7 @@ namespace Opm
             m_runspec.serializeOp(serializer);
             m_unit_system.serializeOp(serializer);
             serializer(this->m_input_path);
+            rst_config.serializeOp(serializer);
         }
 
 
@@ -105,6 +110,7 @@ namespace Opm
             st.m_runspec = Runspec::serializeObject();
             st.m_unit_system = UnitSystem::newFIELD();
             st.m_input_path = "Some/funny/path";
+            st.rst_config = RSTConfig::serializeObject();
             return st;
         }
 
@@ -112,6 +118,7 @@ namespace Opm
             return this->m_input_path == other.m_input_path &&
                    this->m_deck_message_limits == other.m_deck_message_limits &&
                    this->m_unit_system == other.m_unit_system &&
+                   this->rst_config == other.rst_config &&
                    this->m_runspec == other.m_runspec;
         }
     };
@@ -308,6 +315,7 @@ namespace Opm
             pack_unpack<GuideRateConfig, Serializer>(serializer);
             pack_unpack<GasLiftOpt, Serializer>(serializer);
             pack_unpack<RFTConfig, Serializer>(serializer);
+            pack_unpack<RSTConfig, Serializer>(serializer);
 
             pack_unpack_map<int, VFPProdTable, Serializer>(serializer);
             pack_unpack_map<int, VFPInjTable, Serializer>(serializer);
@@ -596,6 +604,7 @@ namespace Opm
         void handleMXUNSUPP (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleNODEPROP (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleNUPCOL   (const HandlerContext&, const ParseContext&, ErrorGuard&);
+        void handleRPTRST   (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleRPTSCHED (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleTUNING   (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleUDQ      (const HandlerContext&, const ParseContext&, ErrorGuard&);

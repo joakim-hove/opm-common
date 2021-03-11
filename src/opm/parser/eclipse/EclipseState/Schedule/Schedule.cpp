@@ -1633,6 +1633,7 @@ void Schedule::create_first(const time_point& start_time, const std::optional<ti
     sched_state.glo.update( GasLiftOpt() );
     sched_state.guide_rate.update( GuideRateConfig() );
     sched_state.rft_config.update( RFTConfig() );
+    sched_state.rst_config.update( this->m_static.rst_config );
     this->addGroup("FIELD", 0);
 }
 
