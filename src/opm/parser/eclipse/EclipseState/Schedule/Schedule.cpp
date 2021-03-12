@@ -1212,11 +1212,11 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
     const std::map< std::string, int >& Schedule::rst_keywords( size_t report_step ) const {
         if (report_step == 0)
-            return {};
+            return this->m_static.rst_config.keywords;
 
-        const auto& keywords = this->snapshots[report_step - 1].rst_config().keywords;
-        if (report_step == 1)
-            assert(keywords == this->restart_config.getRestartKeywords(report_step));
+        //const auto& keywords = this->snapshots[report_step - 1].rst_config().keywords;
+        //if (report_step == 1)
+        //    throw std::logic_error("rst keywords difference");
 
         return this->restart_config.getRestartKeywords(report_step);
     }
