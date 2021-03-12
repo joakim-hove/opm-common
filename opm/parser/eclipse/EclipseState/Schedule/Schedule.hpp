@@ -82,13 +82,15 @@ namespace Opm
 
         ScheduleStatic(std::shared_ptr<const Python> python_handle,
                        const Deck& deck,
-                       const Runspec& runspec) :
+                       const Runspec& runspec,
+                       const ParseContext& parseContext,
+                       ErrorGuard& errors):
             m_python_handle(python_handle),
             m_input_path(deck.getInputPath()),
             m_deck_message_limits( deck ),
             m_unit_system( deck.getActiveUnitSystem() ),
             m_runspec( runspec ),
-            rst_config( SOLUTIONSection(deck) )
+            rst_config( SOLUTIONSection(deck), parseContext, errors )
         {
         }
 

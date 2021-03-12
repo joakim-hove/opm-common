@@ -317,6 +317,8 @@ namespace Opm {
         Well::ProducerCMode whistctl() const;
         void update_whistctl(Well::ProducerCMode whistctl);
 
+        bool rst_file() const;
+
         /*********************************************************************/
 
         ptr_member<PAvg> pavg;

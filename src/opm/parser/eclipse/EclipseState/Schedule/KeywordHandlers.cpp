@@ -790,13 +790,17 @@ namespace {
         this->snapshots.back().update_nupcol(nupcol);
     }
 
-    void Schedule::handleRPTSCHED(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
+    void Schedule::handleRPTSCHED(const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {
         this->snapshots.back().rpt_config.update( RPTConfig(handlerContext.keyword ));
-        this->snapshots.back().rst_config.update( RSTConfig(handlerContext.keyword ));
+        auto rst_config = this->snapshots.back().rst_config();
+        rst_config.update(handlerContext.keyword, parseContext, errors);
+        this->snapshots.back().rst_config.update(std::move(rst_config));
     }
 
-    void Schedule::handleRPTRST(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
-        this->snapshots.back().rst_config.update( RSTConfig(handlerContext.keyword ));
+    void Schedule::handleRPTRST(const HandlerContext& handlerContext, const ParseContext& parseContext, ErrorGuard& errors) {
+        auto rst_config = this->snapshots.back().rst_config();
+        rst_config.update(handlerContext.keyword, parseContext, errors);
+        this->snapshots.back().rst_config.update(std::move(rst_config));
     }
 
     void Schedule::handleTUNING(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {

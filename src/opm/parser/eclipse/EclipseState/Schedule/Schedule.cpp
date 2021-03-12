@@ -108,7 +108,7 @@ namespace {
                         const std::optional<int>& output_interval,
                         const RestartIO::RstState * rst)
     try :
-        m_static( python, deck, runspec ),
+        m_static( python, deck, runspec, parseContext, errors ),
         m_restart_info( restart_info(rst)),
         m_sched_deck(deck, m_restart_info ),
         restart_config(deck, m_restart_info, output_interval, parseContext, errors)
@@ -1197,16 +1197,28 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
         return this->restart_config;
     }
 
-bool Schedule::write_rst_file(std::size_t report_step, bool log) const {
-    return this->restart_config.getWriteRestartFile(report_step, log);
+    bool Schedule::write_rst_file(std::size_t report_step, bool log) const {
+        if (report_step == 0) {
+            const auto& state = this->snapshots[report_step];
+            return state.rst_file();
+        }
+
+        return this->restart_config.getWriteRestartFile(report_step, log);
     }
 
     int  Schedule::first_rst_step() const {
         return this->restart_config.getFirstRestartStep();
     }
 
-    const std::map< std::string, int >& Schedule::rst_keywords( size_t timestep ) const {
-        return this->restart_config.getRestartKeywords(timestep);
+    const std::map< std::string, int >& Schedule::rst_keywords( size_t report_step ) const {
+        if (report_step == 0)
+            return {};
+
+        const auto& keywords = this->snapshots[report_step - 1].rst_config().keywords;
+        if (report_step == 1)
+            assert(keywords == this->restart_config.getRestartKeywords(report_step));
+
+        return this->restart_config.getRestartKeywords(report_step);
     }
 
     bool Schedule::operator==(const Schedule& data) const {
@@ -1634,6 +1646,9 @@ void Schedule::create_first(const time_point& start_time, const std::optional<ti
     sched_state.guide_rate.update( GuideRateConfig() );
     sched_state.rft_config.update( RFTConfig() );
     sched_state.rst_config.update( this->m_static.rst_config );
+    {
+        printf("Starting with write:%d \n", sched_state.rst_file());
+    }
     this->addGroup("FIELD", 0);
 }
 

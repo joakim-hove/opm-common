@@ -183,32 +183,40 @@
 */
 
 #include <unordered_map>
+#include <map>
 #include <optional>
 
 #include <opm/parser/eclipse/Deck/DeckSection.hpp>
 
 namespace Opm {
 
+class ParseContext;
+class ErrorGuard;
+
 class RSTConfig {
 public:
     RSTConfig() = default;
-    explicit RSTConfig(const SOLUTIONSection& solution_section);
-    explicit RSTConfig(const DeckKeyword& keyword);
-
+    RSTConfig(const SOLUTIONSection& solution_section, const ParseContext& parseContext, ErrorGuard& errors);
+    void update(const DeckKeyword& keyword, const ParseContext& parseContext, ErrorGuard& errors);
     static RSTConfig serializeObject();
 
     template<class Serializer>
     void serializeOp(Serializer& serializer) {
-        serializer.template map<std::unordered_map<std::string, int>, false>(m_keywords);
+        serializer(write_rst_file);
+        serializer.template map<std::map<std::string, int>, false>(keywords);
         serializer(basic);
         serializer(freq);
     }
 
     bool operator==(const RSTConfig& other) const;
-private:
-    std::unordered_map<std::string, int> m_keywords;
+
+    std::optional<bool> write_rst_file;
+    std::map<std::string, int> keywords;
     std::optional<int> basic;
     std::optional<int> freq;
+
+private:
+    void handleRPTSOL(const DeckKeyword& keyword);
 };
 
 

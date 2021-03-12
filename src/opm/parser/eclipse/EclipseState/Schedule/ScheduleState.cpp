@@ -285,4 +285,33 @@ const WellGroupEvents& ScheduleState::wellgroup_events() const {
     return this->m_wellgroup_events;
 }
 
+bool ScheduleState::rst_file() const {
+    const auto& config = this->rst_config();
+    if (config.write_rst_file.has_value())
+        return config.write_rst_file.value();
+
+    throw std::logic_error(fmt::format("Unsupported basic={} value", config.basic.value()));
+    if (config.basic == 3)
+        return (this->sim_step() % config.freq.value()) == 0;
+
+    if (config.basic == 4) {
+        if (!this->first_in_year())
+            return false;
+
+        //first_in_year_mod config.freq.value() == 0;
+        return true;
+    }
+
+    if (config.basic == 5) {
+        if (!this->first_in_month())
+            return false;
+
+        //first_in_year_mod config.freq.value() == 0;
+        return true;
+    }
+
+    throw std::logic_error(fmt::format("Unsupported basic={} value", config.basic.value()));
+}
+
+
 }
