@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE( RestartConfig2 ) {
     Schedule schedule(deck, state, python);
     verifyRestartConfig(schedule, rptConfig);
     auto keywords0 = schedule.rst_keywords(0);
-    std::map<std::string, int> expected = {{"BG", 1},
+    std::map<std::string, int> expected0 = {{"BG", 1},
                                            {"BO", 1},
                                            {"BW", 1},
                                            {"KRG", 1},
@@ -192,9 +192,39 @@ BOOST_AUTO_TEST_CASE( RestartConfig2 ) {
                                            {"RSSAT", 1},
                                            {"PBPD", 1},
                                            {"NORST", 1}};
-    for (const auto& [kw, num] : expected)
+    for (const auto& [kw, num] : expected0)
         BOOST_CHECK_EQUAL( keywords0.at(kw), num );
 
+    auto keywords1 = schedule.rst_keywords(1);
+    std::map<std::string, int> expected1 = {{"BG", 1},
+                                            {"BO", 1},
+                                            {"BW", 1},
+                                            {"KRG", 1},
+                                            {"KRO", 1},
+                                            {"KRW", 1},
+                                            {"VOIL", 1},
+                                            {"VGAS", 1},
+                                            {"VWAT", 1},
+                                            {"DEN", 1},
+                                            {"RVSAT", 1},
+                                            {"RSSAT", 1},
+                                            {"PBPD", 1},
+                                            {"NORST", 1},
+                                            {"FIP", 3},
+                                            {"WELSPECS", 1},
+                                            {"WELLS", 0},
+                                            {"NEWTON", 1},
+                                            {"SUMMARY", 1},
+                                            {"CPU", 1},
+                                            {"CONV", 10}};
+
+    for (const auto& [kw, num] : expected1)
+        BOOST_CHECK_EQUAL( keywords1.at(kw), num );
+
+    BOOST_CHECK_EQUAL(expected1.size(), keywords1.size());
+
+    auto keywords10 = schedule.rst_keywords(10);
+    BOOST_CHECK( keywords10 == keywords1 );
 
     BOOST_CHECK_EQUAL( schedule.first_rst_step() , 0 );
 }

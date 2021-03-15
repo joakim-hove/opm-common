@@ -1214,11 +1214,10 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
         if (report_step == 0)
             return this->m_static.rst_config.keywords;
 
-        //const auto& keywords = this->snapshots[report_step - 1].rst_config().keywords;
-        //if (report_step == 1)
-        //    throw std::logic_error("rst keywords difference");
+        const auto& keywords = this->snapshots[report_step - 1].rst_config().keywords;
+        return keywords;
 
-        return this->restart_config.getRestartKeywords(report_step);
+        //return this->restart_config.getRestartKeywords(report_step);
     }
 
     bool Schedule::operator==(const Schedule& data) const {

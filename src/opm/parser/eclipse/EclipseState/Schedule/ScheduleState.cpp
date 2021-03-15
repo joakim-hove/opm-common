@@ -290,10 +290,10 @@ bool ScheduleState::rst_file() const {
     if (config.write_rst_file.has_value())
         return config.write_rst_file.value();
 
-    throw std::logic_error(fmt::format("Unsupported basic={} value", config.basic.value()));
     if (config.basic == 3)
         return (this->sim_step() % config.freq.value()) == 0;
 
+    printf("** WARNING unsupported BASIC= value in ScheduleState::rst_file()\n");
     if (config.basic == 4) {
         if (!this->first_in_year())
             return false;

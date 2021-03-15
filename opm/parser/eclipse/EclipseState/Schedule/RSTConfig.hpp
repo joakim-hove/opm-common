@@ -217,6 +217,9 @@ public:
 
 private:
     void handleRPTSOL(const DeckKeyword& keyword);
+    void handleRPTRST(const DeckKeyword& keyword, const ParseContext& parse_context, ErrorGuard& errors);
+    void handleRPTSCHED(const DeckKeyword& keyword, const ParseContext& parse_context, ErrorGuard& errors);
+    void update_schedule(const std::pair<std::optional<int>, std::optional<int>>& basic_freq);
 };
 
 

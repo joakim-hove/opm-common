@@ -39,6 +39,86 @@ inline bool is_int( const std::string& x ) {
         && std::all_of( x.begin() + 1, x.end(), is_digit );
 }
 
+constexpr const char* SCHEDIntegerKeywords[] = { "PRES",    // 1
+                                                 "SOIL",    // 2
+                                                 "SWAT",    // 3
+                                                 "SGAS",    // 4
+                                                 "RS",      // 5
+                                                 "RV",      // 6
+                                                 "RESTART", // 7
+                                                 "FIP",     // 8
+                                                 "WELLS",   // 9
+                                                 "VFPPROD", // 10
+                                                 "SUMMARY", // 11
+                                                 "CPU",     // 12
+                                                 "AQUCT",   // 13
+                                                 "WELSPECS",// 14
+                                                 "NEWTON",  // 15
+                                                 "POILD",   // 16
+                                                 "PWAT",    // 17
+                                                 "PWATD",   // 18
+                                                 "PGAS",    // 19
+                                                 "PGASD",   // 20
+                                                 "FIPVE",   // 21
+                                                 "WOC",     // 22
+                                                 "GOC",     // 23
+                                                 "WOCDIFF", // 24
+                                                 "GOCDIFF", // 25
+                                                 "WOCGOC",  // 26
+                                                 "ODGAS",   // 27
+                                                 "ODWAT",   // 28
+                                                 "GDOWAT",  // 29
+                                                 "WDOGAS",  // 30
+                                                 "OILAPI",  // 31
+                                                 "FIPITR",  // 32
+                                                 "TBLK",    // 33
+                                                 "PBLK",    // 34
+                                                 "SALT",    // 35
+                                                 "PLYADS",  // 36
+                                                 "RK",      // 37
+                                                 "FIPSALT", // 38
+                                                 "TUNING",  // 39
+                                                 "GI",      // 40
+                                                 "ROCKC",   // 41
+                                                 "SPENWAT", // 42
+                                                 "FIPSOL",  // 43
+                                                 "SURFBLK", // 44
+                                                 "SURFADS", // 45
+                                                 "FIPSURF", // 46
+                                                 "TRADS",   // 47
+                                                 "VOIL",    // 48
+                                                 "VWAT",    // 49
+                                                 "VGAS",    // 50
+                                                 "DENO",    // 51
+                                                 "DENW",    // 52
+                                                 "DENG",    // 53
+                                                 "GASCONC", // 54
+                                                 "PB",      // 55
+                                                 "PD",      // 56
+                                                 "KRW",     // 57
+                                                 "KRO",     // 58
+                                                 "KRG",     // 59
+                                                 "MULT",    // 60
+                                                 "UNKNOWN", // 61 61 and 62 are not listed in the manual
+                                                 "UNKNOWN", // 62
+                                                 "FOAM",    // 63
+                                                 "FIPFOAM", // 64
+                                                 "TEMP",    // 65
+                                                 "FIPTEMP", // 66
+                                                 "POTC",    // 67
+                                                 "FOAMADS", // 68
+                                                 "FOAMDCY", // 69
+                                                 "FOAMMOB", // 70
+                                                 "RECOV",   // 71
+                                                 "FLOOIL",  // 72
+                                                 "FLOWAT",  // 73
+                                                 "FLOGAS",  // 74
+                                                 "SGTRAP",  // 75
+                                                 "FIPRESV", // 76
+                                                 "FLOSOL",  // 77
+                                                 "KRN",     // 78
+                                                 "GRAD",    // 79
+                                               };
 constexpr const char* RSTIntegerKeywords[] = { "BASIC",      //  1
                                                "FLOWS",      //  2
                                                "FIP",        //  3
@@ -91,6 +171,43 @@ bool is_RPTRST_mnemonic( const std::string& kw ) {
     };
 
     return std::binary_search( std::begin( valid ), std::end( valid ), kw );
+}
+
+
+bool is_RPTSCHED_mnemonic( const std::string& kw ) {
+    static constexpr const char* valid[] = {
+        "ALKALINE", "ANIONS",  "AQUCT",    "AQUFET",   "AQUFETP",  "BFORG",
+        "CATIONS",  "CPU",     "DENG",     "DENO",     "DENW",     "ESALPLY",
+        "ESALSUR",  "FFORG",   "FIP",      "FIPFOAM",  "FIPHEAT",  "FIPRESV",
+        "FIPSALT",  "FIPSOL",  "FIPSURF",  "FIPTEMP",  "FIPTR",    "FIPVE",
+        "FLOGAS",   "FLOOIL",  "FLOSOL",   "FLOWAT",   "FMISC",    "FOAM",
+        "FOAMADS",  "FOAMCNM", "FOAMDCY",  "FOAMMOB",  "GASCONC",  "GASSATC",
+        "GDOWAT",   "GI",      "GOC",      "GOCDIFF",  "GRAD",     "KRG",
+        "KRN",      "KRO",     "KRW",      "MULT",     "NEWTON",   "NOTHING",
+        "NPMREB",   "ODGAS",   "ODWAT",    "OILAPI",   "PB",       "PBLK",
+        "PBU",      "PD",      "PDEW",     "PGAS",     "PGASD",    "PLYADS",
+        "POIL",     "POILD",   "POLYMER",  "POTC",     "POTG",     "POTO",
+        "POTW",     "PRES",    "PRESSURE", "PWAT",     "PWATD",    "RECOV",
+        "RESTART",  "ROCKC",   "RS",       "RSSAT",    "RV",       "RVSAT",
+        "SALT",     "SGAS",    "SGTRAP",   "SIGM_MOD", "SOIL",     "SSOL",
+        "SUMMARY",  "SURFADS", "SURFBLK",  "SWAT",     "TBLK",     "TEMP",
+        "TRACER",   "TRADS",   "TRDCY",    "TUNING",   "VFPPROD",  "VGAS",
+        "VOIL",     "VWAT",    "WDOGAS",   "WELLS",    "WELSPECL", "WELSPECS",
+        "WOC",      "WOCDIFF", "WOCGOC",
+    };
+
+    return std::binary_search( std::begin( valid ), std::end( valid ), kw );
+}
+
+inline std::map< std::string, int >
+RPTSCHED_integer( const std::vector< int >& ints ) {
+    const size_t size = std::min( ints.size(), sizeof( SCHEDIntegerKeywords ) );
+
+    std::map< std::string, int > mnemonics;
+    for( size_t i = 0; i < size; ++i )
+        mnemonics[ SCHEDIntegerKeywords[ i ] ] = ints[ i ];
+
+    return mnemonics;
 }
 
 inline std::map< std::string, int >
@@ -282,10 +399,53 @@ bool RSTConfig::operator==(const RSTConfig& other) const {
     return true;
 }
 
+
+void RSTConfig::update_schedule(const std::pair<std::optional<int>, std::optional<int>>& basic_freq) {
+    update_optional(this->basic, basic_freq.first);
+    update_optional(this->freq, basic_freq.second);
+    if (this->basic.has_value()) {
+        auto basic_value = this->basic.value();
+        if (basic_value == 0)
+            this->write_rst_file = false;
+        else if (basic_value == 1 || basic_value == 2)
+            this->write_rst_file = true;
+        else
+            this->write_rst_file = {};
+    }
+}
+
+
+void RSTConfig::handleRPTRST(const DeckKeyword& keyword, const ParseContext& parseContext, ErrorGuard& errors) {
+    const auto& [mnemonics, basic_freq] = RPTRST(keyword, parseContext, errors);
+    this->update_schedule(basic_freq);
+    for (const auto& [kw,num] : mnemonics)
+        this->keywords[kw] = num;
+}
+
+void RSTConfig::handleRPTSCHED(const DeckKeyword& keyword, const ParseContext& parseContext, ErrorGuard& errors) {
+    auto mnemonics = RPT( keyword, parseContext, errors, is_RPTSCHED_mnemonic, RPTSCHED_integer );
+    auto nothing = extract(mnemonics, "NOTHING");
+    if (nothing.has_value()) {
+        this->basic = {};
+        this->keywords.clear();
+    }
+
+    auto restart = extract(mnemonics, "RESTART");
+    if (restart.has_value())
+        this->basic = 2;
+
+    for (const auto& [kw,num] : mnemonics)
+        this->keywords[kw] = num;
+}
+
+
 RSTConfig::RSTConfig(const SOLUTIONSection& solution_section, const ParseContext& parseContext, ErrorGuard& errors)
 {
     this->write_rst_file = false;
     if (solution_section.hasKeyword<ParserKeywords::RPTRST>()) {
+        const auto& keyword = solution_section.getKeyword<ParserKeywords::RPTRST>();
+        this->handleRPTRST(keyword, parseContext, errors);
+
         // Guessing on eclipse rules for write of initial RESTART file (at time 0):
         // Write of initial restart file is (due to the eclipse reference manual)
         // governed by RPTSOL RESTART in solution section,
@@ -294,14 +454,6 @@ RSTConfig::RSTConfig(const SOLUTIONSection& solution_section, const ParseContext
         // for data where RPTSOL RESTART not set - guessing that
         // when RPTRST is set in SOLUTION (no basic though...) -> write inital restart.
         this->write_rst_file = true;
-        const auto& keyword = solution_section.getKeyword<ParserKeywords::RPTRST>();
-        const auto& [mnemonics, basic_freq] = RPTRST(keyword, parseContext, errors);
-
-        update_optional(this->basic, basic_freq.first);
-        update_optional(this->freq, basic_freq.second);
-
-        for (const auto& [kw,num] : mnemonics)
-            this->keywords[kw] = num;
     }
 
     if (solution_section.hasKeyword<ParserKeywords::RPTSOL>()) {
@@ -312,10 +464,10 @@ RSTConfig::RSTConfig(const SOLUTIONSection& solution_section, const ParseContext
 
 
 void RSTConfig::update(const DeckKeyword& keyword, const ParseContext& parseContext, ErrorGuard& errors) {
-    if (keyword.name() == ParserKeywords::RPTRST::keywordName) {
-
-    } else if (keyword.name() == ParserKeywords::RPTSCHED::keywordName) {
-
+    if (keyword.name() == ParserKeywords::RPTRST::keywordName)
+        this->handleRPTRST(keyword, parseContext, errors);
+    else if (keyword.name() == ParserKeywords::RPTSCHED::keywordName) {
+        this->handleRPTSCHED(keyword, parseContext, errors);
     } else
         throw std::logic_error("The RSTConfig object can only use RPTRST and RPTSCHED keywords");
 }
