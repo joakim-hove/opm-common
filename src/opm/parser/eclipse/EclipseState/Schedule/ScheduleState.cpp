@@ -290,11 +290,11 @@ bool ScheduleState::rst_file() const {
     if (config.write_rst_file.has_value())
         return config.write_rst_file.value();
 
-    if (config.basic == 3)
+    if (config.basic.value() == 3)
         return (this->sim_step() % config.freq.value()) == 0;
 
-    printf("** WARNING unsupported BASIC= value in ScheduleState::rst_file()\n");
-    if (config.basic == 4) {
+    printf("** WARNING unsupported BASIC=%ld value in ScheduleState::rst_file()\n", config.basic.value());
+    if (config.basic.value() == 4) {
         if (!this->first_in_year())
             return false;
 
@@ -302,7 +302,7 @@ bool ScheduleState::rst_file() const {
         return true;
     }
 
-    if (config.basic == 5) {
+    if (config.basic.value() == 5) {
         if (!this->first_in_month())
             return false;
 
@@ -310,7 +310,7 @@ bool ScheduleState::rst_file() const {
         return true;
     }
 
-    throw std::logic_error(fmt::format("Unsupported basic={} value", config.basic.value()));
+    throw std::logic_error(fmt::format("Unsupported BASIC={} value", config.basic.value()));
 }
 
 

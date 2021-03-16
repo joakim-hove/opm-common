@@ -431,8 +431,7 @@ void RSTConfig::handleRPTSCHED(const DeckKeyword& keyword, const ParseContext& p
     }
 
     auto restart = extract(mnemonics, "RESTART");
-    if (restart.has_value())
-        this->basic = 2;
+    this->update_schedule({restart,1});
 
     for (const auto& [kw,num] : mnemonics)
         this->keywords[kw] = num;
