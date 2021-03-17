@@ -794,6 +794,13 @@ namespace {
         this->snapshots.back().rpt_config.update( RPTConfig(handlerContext.keyword ));
         auto rst_config = this->snapshots.back().rst_config();
         rst_config.update(handlerContext.keyword, parseContext, errors);
+        if (handlerContext.currentStep == 3) {
+            const auto& write_rst = rst_config.write_rst_file;
+            if (write_rst.has_value())
+                printf("3: rst_config.write_rst_file: %d\n", write_rst.value());
+            else
+                printf("3: rst_config.write_rst_file: ??\n");
+        }
         this->snapshots.back().rst_config.update(std::move(rst_config));
     }
 

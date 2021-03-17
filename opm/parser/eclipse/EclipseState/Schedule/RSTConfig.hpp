@@ -198,6 +198,7 @@ public:
     RSTConfig() = default;
     RSTConfig(const SOLUTIONSection& solution_section, const ParseContext& parseContext, ErrorGuard& errors);
     void update(const DeckKeyword& keyword, const ParseContext& parseContext, ErrorGuard& errors);
+    static RSTConfig first(const RSTConfig& src);
     static RSTConfig serializeObject();
 
     template<class Serializer>

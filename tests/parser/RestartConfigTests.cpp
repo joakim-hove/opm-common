@@ -85,7 +85,7 @@ Schedule make_schedule(std::string sched_input, bool add_grid = true) {
 }
 
 
-
+#if 0
 BOOST_AUTO_TEST_CASE(RPTRST_AND_RPTSOL_SOLUTION)
 {
     const auto input = std::string { R"(RUNSPEC
@@ -1340,3 +1340,79 @@ TSTEP
     BOOST_CHECK( sched.write_rst_file( 12 ) );
 
 }
+#endif
+
+
+BOOST_AUTO_TEST_CASE(RPTSCHED_INTEGER) {
+
+    const std::string deckData1 = R"(
+RUNSPEC
+START             -- 0
+19 JUN 2007 /
+DIMENS
+ 10 10 10 /
+GRID
+
+DXV
+  10*1 /
+
+DYV
+  10*1 /
+
+DZV
+  10*1 /
+
+DEPTHZ
+  121*1 /
+
+PORO
+  1000*0.25 /
+SOLUTION
+RPTRST  -- PRES,DEN,PCOW,PCOG,RK,VELOCITY,COMPRESS
+  6*0 1 0 1 9*0 1 7*0 1 0 3*1 / -- Static
+
+SCHEDULE
+-- 0
+DATES             -- 1
+ 10  OKT 2008 /
+/
+RPTSCHED
+RESTART=1
+/
+DATES             -- 2
+ 20  JAN 2010 /
+/
+RPTRST  -- RK,VELOCITY,COMPRESS
+  18*0 0 8*0 /
+DATES             -- 3
+ 20  FEB 2010 /
+/
+RPTSCHED
+RESTART=0
+/
+
+DATES       -- 4
+1 MAR 2010 /
+/
+)";
+
+    auto sched = make_schedule(deckData1, false);
+
+    BOOST_CHECK_EQUAL( sched.size(), 5);
+    BOOST_CHECK(  sched.write_rst_file( 0 ) );
+    BOOST_CHECK( !sched.write_rst_file( 1 ) );
+    BOOST_CHECK(  sched.write_rst_file( 2 ) );
+    BOOST_CHECK( !sched.write_rst_file( 3 ) );
+
+
+    const auto& kw_list1 = filter_keywords(sched.rst_keywords(1));
+    const auto expected1 = {"BG","BO","BW","COMPRESS","DEN","KRG","KRO","KRW","PCOG","PCOW","PRES","RK","VELOCITY","VGAS","VOIL","VWAT"};
+    BOOST_CHECK_EQUAL_COLLECTIONS( expected1.begin(), expected1.end(),
+                                   kw_list1.begin(), kw_list1.end() );
+
+    const auto& kw_list2 = filter_keywords( sched.rst_keywords(3));
+    const auto expected2 = { "COMPRESS", "RK", "VELOCITY" };
+    BOOST_CHECK_EQUAL_COLLECTIONS( expected2.begin(), expected2.end(),
+                                   kw_list2.begin(), kw_list2.end() );
+}
+

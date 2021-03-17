@@ -478,6 +478,28 @@ RSTConfig RSTConfig::serializeObject() {
     return rst_config;
 }
 
+/*
+  The RPTRST keyword is treated differently in the SOLUTION section and in the
+  SCHEDULE section. This function takes a RSTConfig object created from the
+  solution section and creates a transformed copy suitable as the first
+  RSTConfig to represent the Schedule section.
+*/
+RSTConfig RSTConfig::first(const RSTConfig& solution_config ) {
+    RSTConfig rst_config(solution_config);
+    auto basic = rst_config.basic;
+    if (!basic.has_value()) {
+        rst_config.write_rst_file = false;
+        return rst_config;
+    }
+    auto basic_value = basic.value();
+    if (basic_value == 0 || basic_value >= 3) {
+        rst_config.write_rst_file = false;
+        return rst_config;
+    }
+    rst_config.write_rst_file = true;
+    return rst_config;
+}
+
 }
 
 
