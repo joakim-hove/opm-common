@@ -213,23 +213,10 @@ RPTSCHED_integer( const std::vector< int >& ints ) {
 inline std::map< std::string, int >
 RPTRST_integer( const std::vector< int >& ints ) {
     const size_t PCO_index = 26;
-    const size_t BASIC_index = 0;
-
     std::map< std::string, int > mnemonics;
     const size_t size = std::min( ints.size(), sizeof( RSTIntegerKeywords ) );
 
-    /* fun with special cases. Eclipse seems to ignore the BASIC=0,
-     * interpreting it as sort-of "don't modify". Handle this by *not*
-     * adding/updating the integer list sourced BASIC mnemonic, should it be
-     * zero. I'm not sure if this applies to other mnemonics, but the eclipse
-     * manual indicates that any zero here should disable the output.
-     *
-     * See https://github.com/OPM/opm-parser/issues/886 for reference
-     */
-    if( size > 0 && ints[ BASIC_index ] != 0 )
-        mnemonics[ RSTIntegerKeywords[ BASIC_index ] ] = ints[ BASIC_index ];
-
-    for( size_t i = 1; i < std::min( size, PCO_index ); ++i )
+    for( size_t i = 0; i < std::min( size, PCO_index ); ++i )
         mnemonics[ RSTIntegerKeywords[ i ] ] = ints[ i ];
 
     for( size_t i = PCO_index + 1; i < size; ++i )

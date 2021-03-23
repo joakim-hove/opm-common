@@ -262,7 +262,7 @@ namespace Opm
         void filterConnections(const ActiveGridCells& grid);
         std::size_t size() const;
 
-        bool write_rst_file(std::size_t report_step, bool log=true) const;
+        bool write_rst_file(std::size_t report_step, bool log=true, bool check=true) const;
         int  first_rst_step() const;
         const std::map< std::string, int >& rst_keywords( size_t timestep ) const;
 

@@ -1197,19 +1197,22 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
         return this->restart_config;
     }
 
-    bool Schedule::write_rst_file(std::size_t report_step, bool log) const {
+    bool Schedule::write_rst_file(std::size_t report_step, bool log, bool check) const {
         if (report_step == 0)
             return this->m_static.rst_config.write_rst_file.value();
 
         const auto& state = this->snapshots[report_step - 1];
-        if (state.rst_file() != this->restart_config.getWriteRestartFile(report_step, log)) {
-            auto basic_value = state.rst_config().basic.value_or(99);
-            printf("** Warning write_rst_file mismatch for step: %ld  basic:%d\n", report_step, basic_value);
-            if (basic_value <= 2)
-                throw std::logic_error("RST error");
+        if (check) {
+            if (state.rst_file() != this->restart_config.getWriteRestartFile(report_step, log)) {
+                auto basic_value = state.rst_config().basic.value_or(99);
+                printf("** Warning write_rst_file mismatch for step: %ld  basic:%d\n", report_step, basic_value);
+                if (basic_value <= 2)
+                    throw std::logic_error("RST error");
+            }
         }
 
-        return this->restart_config.getWriteRestartFile(report_step, log);
+        return state.rst_file();
+        //return this->restart_config.getWriteRestartFile(report_step, log);
     }
 
     int  Schedule::first_rst_step() const {
@@ -1222,8 +1225,6 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
 
         const auto& keywords = this->snapshots[report_step - 1].rst_config().keywords;
         return keywords;
-
-        //return this->restart_config.getRestartKeywords(report_step);
     }
 
     bool Schedule::operator==(const Schedule& data) const {

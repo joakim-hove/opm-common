@@ -1369,7 +1369,7 @@ PORO
   1000*0.25 /
 SOLUTION
 RPTRST  -- PRES,DEN,PCOW,PCOG,RK,VELOCITY,COMPRESS
-  6*0 1 0 1 9*0 1 7*0 1 0 3*1 / -- Static
+  1 5*0 1 0 1 9*0 1 7*0 1 0 3*1 / -- Static
 
 SCHEDULE
 -- 0
@@ -1400,7 +1400,7 @@ DATES       -- 4
 
     BOOST_CHECK_EQUAL( sched.size(), 5);
     BOOST_CHECK(  sched.write_rst_file( 0 ) );
-    BOOST_CHECK( !sched.write_rst_file( 1 ) );
+    BOOST_CHECK(  sched.write_rst_file( 1 , false, false) );
     BOOST_CHECK(  sched.write_rst_file( 2 ) );
     BOOST_CHECK( !sched.write_rst_file( 3 ) );
 
