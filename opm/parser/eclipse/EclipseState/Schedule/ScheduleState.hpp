@@ -319,6 +319,7 @@ namespace Opm {
 
         bool rst_file(const RSTConfig& rst_config) const;
         void update_date(const time_point& prev_time);
+        void handleSAVE();
 
         /*********************************************************************/
 
@@ -452,6 +453,7 @@ namespace Opm {
             serializer(m_first_in_month);
             serializer(m_first_in_year_num);
             serializer(m_first_in_month_num);
+            serializer(m_save_step);
             m_tuning.serializeOp(serializer);
             serializer(m_nupcol);
             m_oilvap.serializeOp(serializer);
@@ -475,6 +477,7 @@ namespace Opm {
         bool m_first_in_year;
         int m_first_in_month_num = 0;
         int m_first_in_year_num = 0;
+        std::optional<int> m_save_step;
 
         Tuning m_tuning;
         int m_nupcol;

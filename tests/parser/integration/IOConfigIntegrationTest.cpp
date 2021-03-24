@@ -146,6 +146,7 @@ BOOST_AUTO_TEST_CASE( RestartConfig2 ) {
     rptConfig.emplace(8  , boost::gregorian::date(2000,7,1));
     rptConfig.emplace(27 , boost::gregorian::date(2001,1,1));
     rptConfig.emplace(45 , boost::gregorian::date(2001,7,1));
+    rptConfig.emplace(50 , boost::gregorian::date(2001,8,24));
     rptConfig.emplace(61 , boost::gregorian::date(2002,1,1));
     rptConfig.emplace(79 , boost::gregorian::date(2002,7,1));
     rptConfig.emplace(89 , boost::gregorian::date(2003,1,1));

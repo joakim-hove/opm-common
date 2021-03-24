@@ -198,6 +198,7 @@ public:
     RSTConfig() = default;
     RSTConfig(const SOLUTIONSection& solution_section, const ParseContext& parseContext, ErrorGuard& errors);
     void update(const DeckKeyword& keyword, const ParseContext& parseContext, ErrorGuard& errors);
+    void init_next();
     static RSTConfig first(const RSTConfig& src);
     static RSTConfig serializeObject();
 
@@ -207,6 +208,7 @@ public:
         serializer.template map<std::map<std::string, int>, false>(keywords);
         serializer(basic);
         serializer(freq);
+        serializer(save);
     }
 
     bool operator==(const RSTConfig& other) const;
@@ -215,6 +217,7 @@ public:
     std::map<std::string, int> keywords;
     std::optional<int> basic;
     std::optional<int> freq;
+    bool save = false;
 
 private:
     void handleRPTSOL(const DeckKeyword& keyword);

@@ -98,6 +98,11 @@ ScheduleState::ScheduleState(const ScheduleState& src, const time_point& start_t
         this->rft_config.update( std::move(*next_rft) );
 
     this->update_date(src.m_start_time);
+    if (this->rst_config().save) {
+        auto new_rst = this->rst_config();
+        new_rst.save = false;
+        this->rst_config.update( std::move(new_rst) );
+    }
 }
 
 
@@ -300,6 +305,7 @@ const WellGroupEvents& ScheduleState::wellgroup_events() const {
     return this->m_wellgroup_events;
 }
 
+
 /*
   Observe that the decision to write a restart file will typically be a
   combination of the RST configuration from the previous report step, and the
@@ -309,6 +315,9 @@ const WellGroupEvents& ScheduleState::wellgroup_events() const {
 */
 
 bool ScheduleState::rst_file(const RSTConfig& rst) const {
+    if (rst.save)
+        return true;
+
     if (rst.write_rst_file.has_value())
         return rst.write_rst_file.value();
 

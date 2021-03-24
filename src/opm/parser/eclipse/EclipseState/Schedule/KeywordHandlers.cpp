@@ -810,6 +810,16 @@ namespace {
         this->snapshots.back().rst_config.update(std::move(rst_config));
     }
 
+    /*
+      We do not really handle the SAVE keyword, we just interpret it as: Write a
+      normal restart file at this report step.
+    */
+    void Schedule::handleSAVE(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
+        auto rst_config = this->snapshots.back().rst_config();
+        rst_config.save = true;
+        this->snapshots.back().rst_config.update(std::move(rst_config));
+    }
+
     void Schedule::handleTUNING(const HandlerContext& handlerContext, const ParseContext&, ErrorGuard&) {
         const auto numrecords = handlerContext.keyword.size();
         auto tuning = this->snapshots.back().tuning();
@@ -1983,6 +1993,7 @@ namespace {
             { "NUPCOL"  , &Schedule::handleNUPCOL   },
             { "RPTRST"  , &Schedule::handleRPTRST   },
             { "RPTSCHED", &Schedule::handleRPTSCHED },
+            { "SAVE"    , &Schedule::handleSAVE     },
             { "TUNING"  , &Schedule::handleTUNING   },
             { "UDQ"     , &Schedule::handleUDQ      },
             { "VAPPARS" , &Schedule::handleVAPPARS  },

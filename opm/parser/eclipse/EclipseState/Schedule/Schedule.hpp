@@ -609,6 +609,7 @@ namespace Opm
         void handleRPTRST   (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleRPTSCHED (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleTUNING   (const HandlerContext&, const ParseContext&, ErrorGuard&);
+        void handleSAVE     (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleUDQ      (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleVAPPARS  (const HandlerContext&, const ParseContext&, ErrorGuard&);
         void handleVFPINJ   (const HandlerContext&, const ParseContext&, ErrorGuard&);
