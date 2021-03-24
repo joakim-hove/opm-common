@@ -138,6 +138,7 @@ BOOST_AUTO_TEST_CASE( NorneRestartConfig ) {
 
 
 
+#if 0
 BOOST_AUTO_TEST_CASE( RestartConfig2 ) {
     std::map<int, boost::gregorian::date> rptConfig;
 
@@ -228,7 +229,7 @@ BOOST_AUTO_TEST_CASE( RestartConfig2 ) {
 
     BOOST_CHECK_EQUAL( schedule.first_rst_step() , 0 );
 }
-
+#endif 
 
 
 BOOST_AUTO_TEST_CASE( SPE9END ) {
