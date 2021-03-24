@@ -40,7 +40,7 @@ time_point clamp_time(time_point t) {
     return TimeService::from_time_t( TimeService::to_time_t( t ) );
 }
 
-std::pair<std::size_t, std::size_t> date_diff(time_point t2, time_point t1) {
+std::pair<std::size_t, std::size_t> date_diff(const time_point& t2, const time_point& t1) {
     auto ts1 = TimeStampUTC(TimeService::to_time_t(t1));
     auto ts2 = TimeStampUTC(TimeService::to_time_t(t2));
     auto year_diff  = ts2.year() - ts1.year();
@@ -64,6 +64,24 @@ ScheduleState::ScheduleState(const time_point& start_time, const time_point& end
     this->m_end_time = clamp_time(end_time);
 }
 
+void ScheduleState::update_date(const time_point& prev_time) {
+    auto [year_diff, month_diff] = date_diff(this->m_start_time, prev_time);
+    this->m_year_num += year_diff;
+    this->m_month_num += month_diff;
+
+    this->m_first_in_month = (month_diff > 0);
+    this->m_first_in_year = (year_diff > 0);
+
+    if (this->m_first_in_month)
+        this->m_first_in_month_num += 1;
+
+    if (this->m_first_in_year)
+        this->m_first_in_year_num += 1;
+}
+
+
+
+
 ScheduleState::ScheduleState(const ScheduleState& src, const time_point& start_time) :
     ScheduleState(src)
 {
@@ -79,18 +97,9 @@ ScheduleState::ScheduleState(const ScheduleState& src, const time_point& start_t
     if (next_rft.has_value())
         this->rft_config.update( std::move(*next_rft) );
 
-    auto [year_diff, month_diff] = date_diff(this->m_start_time, src.m_start_time);
-    this->m_year_num += year_diff;
-    this->m_month_num += month_diff;
-
-    this->m_first_in_month = (this->m_month_num > src.m_month_num);
-    this->m_first_in_year = (this->m_year_num > src.m_year_num);
-    if (this->m_first_in_month)
-        this->m_first_in_month_num += 1;
-
-    if (this->m_first_in_year)
-        this->m_first_in_year_num += 1;
+    this->update_date(src.m_start_time);
 }
+
 
 ScheduleState::ScheduleState(const ScheduleState& src, const time_point& start_time, const time_point& end_time) :
     ScheduleState(src, start_time)

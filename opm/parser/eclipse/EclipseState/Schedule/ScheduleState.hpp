@@ -318,6 +318,7 @@ namespace Opm {
         void update_whistctl(Well::ProducerCMode whistctl);
 
         bool rst_file(const RSTConfig& rst_config) const;
+        void update_date(const time_point& prev_time);
 
         /*********************************************************************/
 
@@ -470,10 +471,10 @@ namespace Opm {
         std::size_t m_sim_step = 0;
         std::size_t m_month_num = 0;
         std::size_t m_year_num = 0;
-        bool m_first_in_month = true;
-        bool m_first_in_year = true;
-        bool m_first_in_month_num = 0;
-        bool m_first_in_year_num = 0;
+        bool m_first_in_month;
+        bool m_first_in_year;
+        int m_first_in_month_num = 0;
+        int m_first_in_year_num = 0;
 
         Tuning m_tuning;
         int m_nupcol;

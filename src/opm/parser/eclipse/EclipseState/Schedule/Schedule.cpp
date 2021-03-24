@@ -1207,8 +1207,7 @@ void Schedule::iterateScheduleSection(std::size_t load_start, std::size_t load_e
             if (state.rst_file(rst_config) != this->restart_config.getWriteRestartFile(report_step, log)) {
                 auto basic_value = rst_config.basic.value_or(99);
                 printf("** Warning write_rst_file mismatch for step: %ld  basic:%d\n", report_step, basic_value);
-                if (basic_value <= 2)
-                    throw std::logic_error("RST error");
+                throw std::logic_error("RST error");
             }
         }
 
@@ -1653,6 +1652,7 @@ void Schedule::create_first(const time_point& start_time, const std::optional<ti
     sched_state.guide_rate.update( GuideRateConfig() );
     sched_state.rft_config.update( RFTConfig() );
     sched_state.rst_config.update( RSTConfig::first( this->m_static.rst_config ) );
+    sched_state.update_date( start_time );
     this->addGroup("FIELD", 0);
 }
 
