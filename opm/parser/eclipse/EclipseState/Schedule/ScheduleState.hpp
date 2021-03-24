@@ -317,7 +317,7 @@ namespace Opm {
         Well::ProducerCMode whistctl() const;
         void update_whistctl(Well::ProducerCMode whistctl);
 
-        bool rst_file() const;
+        bool rst_file(const RSTConfig& rst_config) const;
 
         /*********************************************************************/
 
@@ -449,6 +449,8 @@ namespace Opm {
             serializer(m_year_num);
             serializer(m_first_in_year);
             serializer(m_first_in_month);
+            serializer(m_first_in_year_num);
+            serializer(m_first_in_month_num);
             m_tuning.serializeOp(serializer);
             serializer(m_nupcol);
             m_oilvap.serializeOp(serializer);
@@ -470,6 +472,9 @@ namespace Opm {
         std::size_t m_year_num = 0;
         bool m_first_in_month = true;
         bool m_first_in_year = true;
+        bool m_first_in_month_num = 0;
+        bool m_first_in_year_num = 0;
+
         Tuning m_tuning;
         int m_nupcol;
         OilVaporizationProperties m_oilvap;

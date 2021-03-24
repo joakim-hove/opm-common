@@ -85,6 +85,11 @@ ScheduleState::ScheduleState(const ScheduleState& src, const time_point& start_t
 
     this->m_first_in_month = (this->m_month_num > src.m_month_num);
     this->m_first_in_year = (this->m_year_num > src.m_year_num);
+    if (this->m_first_in_month)
+        this->m_first_in_month_num += 1;
+
+    if (this->m_first_in_year)
+        this->m_first_in_year_num += 1;
 }
 
 ScheduleState::ScheduleState(const ScheduleState& src, const time_point& start_time, const time_point& end_time) :
@@ -244,6 +249,7 @@ ScheduleState ScheduleState::serializeObject() {
     ts.guide_rate.update( GuideRateConfig::serializeObject() );
     ts.glo.update( GasLiftOpt::serializeObject() );
     ts.rft_config.update( RFTConfig::serializeObject() );
+    ts.rst_config.update( RSTConfig::serializeObject() );
 
     return ts;
 }
@@ -285,32 +291,40 @@ const WellGroupEvents& ScheduleState::wellgroup_events() const {
     return this->m_wellgroup_events;
 }
 
-bool ScheduleState::rst_file() const {
-    const auto& config = this->rst_config();
-    if (config.write_rst_file.has_value())
-        return config.write_rst_file.value();
+/*
+  Observe that the decision to write a restart file will typically be a
+  combination of the RST configuration from the previous report step, and the
+  first_in_year++ attributes of this report step. That is the reason the
+  function takes a RSTConfig argument - instead of using the rst_config member.
 
-    if (config.basic.value() == 3)
-        return (this->sim_step() % config.freq.value()) == 0;
+*/
 
-    printf("** WARNING unsupported BASIC=%ld value in ScheduleState::rst_file()\n", config.basic.value());
-    if (config.basic.value() == 4) {
+bool ScheduleState::rst_file(const RSTConfig& rst) const {
+    if (rst.write_rst_file.has_value())
+        return rst.write_rst_file.value();
+
+    auto freq = rst.freq.value_or(1);
+    auto basic = rst.basic.value();
+
+    if (basic == 3)
+        return (this->sim_step() % freq) == 0;
+
+    if (basic == 4) {
         if (!this->first_in_year())
             return false;
 
-        //first_in_year_mod config.freq.value() == 0;
-        return true;
+        return (this->m_first_in_year_num % freq) == 0;
     }
 
-    if (config.basic.value() == 5) {
+    if (basic == 5) {
         if (!this->first_in_month())
             return false;
 
-        //first_in_year_mod config.freq.value() == 0;
+        return (this->m_first_in_month_num % freq) == 0;
         return true;
     }
 
-    throw std::logic_error(fmt::format("Unsupported BASIC={} value", config.basic.value()));
+    throw std::logic_error(fmt::format("Unsupported BASIC={} value", basic));
 }
 
 
