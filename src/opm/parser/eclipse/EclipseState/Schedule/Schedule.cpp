@@ -1431,7 +1431,6 @@ int not_equal(const UDAValue& arg1, const UDAValue& arg2, const std::string& msg
         return not_equal( arg1.get<std::string>(), arg2.get<std::string>(), msg);
 }
 
-
 std::string well_msg(const std::string& well, const std::string& msg) {
     return "Well: " + well + " " + msg;
 }
@@ -1450,24 +1449,42 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
     int count = not_equal(sched1.wellNames(report_step), sched2.wellNames(report_step), "Wellnames");
     if (count != 0)
         return false;
-    {
-        //if (sched1.size() != sched2.size())
-        //    return false;
 
-        //for (std::size_t step=0; step < sched1.size(); step++) {
-        //    auto start1 = sched1[step].start_time();
-        //    auto start2 = sched2[step].start_time();
-        //    if (start1 != start2)
-        //        return false;
+    int group_count = 0;
+    for (const auto& gname : sched1.groupNames(report_step)) {
+        const auto& group1 = sched1.getGroup(gname, report_step);
+        const auto& group2 = sched2.getGroup(gname, report_step);
 
-        //    if (step < sched1.size() - 1) {
-        //        auto end1 = sched1[step].end_time();
-        //        auto end2 = sched2[step].end_time();
-        //        if (end1 != end2)
-        //            return false;
-        //    }
-        //}
+        auto group_msg = [group1](const std::string& msg) {
+            return "Group:" + group1.name() + " : " + msg;
+        };
+
+
+        group_count += not_equal(group1.insert_index(), group2.insert_index(), group_msg("Insert index"));
+        group_count += not_equal(group1.parent(), group2.parent(), group_msg("Parent"));
+        group_count += not_equal(group1.wells(), group2.wells(), group_msg("Wells"));
+        group_count += not_equal(group1.groups(), group2.groups(), group_msg("Groups"));
+        group_count += not_equal(group1.getGroupEfficiencyFactor(), group2.getGroupEfficiencyFactor(), group_msg("GEFAC"));
+        group_count += not_equal(group1.getTransferGroupEfficiencyFactor(), group2.getTransferGroupEfficiencyFactor(), group_msg("Transfer_GEFAC"));
+        group_count += not_equal(group1.getGroupNetVFPTable(), group2.getGroupNetVFPTable(), group_msg("VFP Table"));
+        {
+            const auto& prod1 = group1.productionProperties();
+            const auto& prod2 = group2.productionProperties();
+
+            group_count += not_equal(prod1.name, prod2.name, group_msg("Prod name"));
+            group_count += not_equal(prod1.gconprod_cmode, prod2.gconprod_cmode, group_msg("Gconprod CMode"));
+            group_count += not_equal(prod1.active_cmode, prod2.active_cmode, group_msg("Active CMode"));
+            group_count += not_equal(prod1.exceed_action, prod2.exceed_action, group_msg("ExceedAction"));
+        }
+
+        {
+            const auto& inj1 = group1.injectionProperties();
+            const auto& inj2 = group2.injectionProperties();
+        }
+
+        group_count += not_equal(group1.getGroupType(), group2.getGroupType(), group_msg("GroupType"));
     }
+    count += group_count;
 
     for (const auto& wname : sched1.wellNames(report_step)) {
         const auto& well1 = sched1.getWell(wname, report_step);
@@ -1542,7 +1559,6 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             well_count += not_equal(prod1.THPTarget, prod2.THPTarget, well_msg(well1.name(), "Prod: THPTarget"));
             well_count += not_equal(prod1.VFPTableNumber, prod2.VFPTableNumber, well_msg(well1.name(), "Prod: VFPTableNumber"));
             well_count += not_equal(prod1.ALQValue, prod2.ALQValue, well_msg(well1.name(), "Prod: ALQValue"));
-            well_count += not_equal(prod1.predictionMode, prod2.predictionMode, well_msg(well1.name(), "Prod: predictionMode"));
             if (!prod1.predictionMode) {
                 well_count += not_equal(prod1.bhp_hist_limit, prod2.bhp_hist_limit, well_msg(well1.name(), "Prod: bhp_hist_limit"));
                 well_count += not_equal(prod1.thp_hist_limit, prod2.thp_hist_limit, well_msg(well1.name(), "Prod: thp_hist_limit"));
@@ -1550,8 +1566,18 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
                 well_count += not_equal(prod1.THPH, prod2.THPH, well_msg(well1.name(), "Prod: THPH"));
             }
             well_count += not_equal(prod1.productionControls(), prod2.productionControls(), well_msg(well1.name(), "Prod: productionControls"));
-            if (well1.getStatus() == Well::Status::OPEN)
-                well_count += not_equal(prod1.controlMode, prod2.controlMode, well_msg(well1.name(), "Prod: controlMode"));
+            if (well1.getStatus() == Well::Status::OPEN) {
+                // This means that the active control mode read from the restart
+                // file is different from the control mode prescribed in the
+                // schedule file. This *might* be an indication of a bug, but in
+                // general this is perfectly legitimate.
+                if (prod1.controlMode != prod2.controlMode)
+                    fmt::print("Difference in production controlMode for well:{}  Schedule input: {}   restart file: {}\n",
+                               well1.name(),
+                               Well::ProducerCMode2String(prod1.controlMode),
+                               Well::ProducerCMode2String(prod2.controlMode));
+                well_count += not_equal(prod1.predictionMode, prod2.predictionMode, well_msg(well1.name(), "Prod: predictionMode"));
+            }
             well_count += not_equal(prod1.whistctl_cmode, prod2.whistctl_cmode, well_msg(well1.name(), "Prod: whistctl_cmode"));
         }
         {
@@ -1568,10 +1594,21 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             well_count += not_equal(inj1.BHPH, inj2.BHPH, well_msg(well1.name(), "Well::Inj: BHPH"));
             well_count += not_equal(inj1.THPH, inj2.THPH, well_msg(well1.name(), "Well::Inj: THPH"));
             well_count += not_equal(inj1.VFPTableNumber, inj2.VFPTableNumber, well_msg(well1.name(), "Well::Inj: VFPTableNumber"));
-            well_count += not_equal(inj1.predictionMode, inj2.predictionMode, well_msg(well1.name(), "Well::Inj: predictionMode"));
             well_count += not_equal(inj1.injectionControls, inj2.injectionControls, well_msg(well1.name(), "Well::Inj: injectionControls"));
             well_count += not_equal(inj1.injectorType, inj2.injectorType, well_msg(well1.name(), "Well::Inj: injectorType"));
-            well_count += not_equal(inj1.controlMode, inj2.controlMode, well_msg(well1.name(), "Well::Inj: controlMode"));
+            if (well1.getStatus() == Well::Status::OPEN) {
+                // This means that the active control mode read from the restart
+                // file is different from the control mode prescribed in the
+                // schedule file. This *might* be an indication of a bug, but in
+                // general this is perfectly legitimate.
+                if (inj1.controlMode != inj2.controlMode)
+                    fmt::print("Difference in injection controlMode for well:{}  Schedule input: {}   restart file: {}\n",
+                               well1.name(),
+                               Well::InjectorCMode2String(inj1.controlMode),
+                               Well::InjectorCMode2String(inj2.controlMode));
+                well_count += not_equal(inj1.predictionMode, inj2.predictionMode, well_msg(well1.name(), "Well::Inj: predictionMode"));
+            } else
+                well_count += not_equal(inj1.controlMode, inj2.controlMode, well_msg(well1.name(), "Well::Inj: controlMode"));
         }
 
         {
@@ -1585,7 +1622,6 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             well_count += not_equal( well1.getGuideRate(), well2.getGuideRate(), well_msg(well1.name(), "Well: getGuideRate"));
             well_count += not_equal( well1.getGuideRatePhase(), well2.getGuideRatePhase(), well_msg(well1.name(), "Well: getGuideRatePhase"));
             well_count += not_equal( well1.getGuideRateScalingFactor(), well2.getGuideRateScalingFactor(), well_msg(well1.name(), "Well: getGuideRateScalingFactor"));
-            well_count += not_equal( well1.predictionMode(), well2.predictionMode(), well_msg(well1.name(), "Well: predictionMode"));
             well_count += not_equal( well1.canOpen(), well2.canOpen(), well_msg(well1.name(), "Well: canOpen"));
             well_count += not_equal( well1.isProducer(), well2.isProducer(), well_msg(well1.name(), "Well: isProducer"));
             well_count += not_equal( well1.isInjector(), well2.isInjector(), well_msg(well1.name(), "Well: isInjector"));
@@ -1603,6 +1639,9 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
                 well_count += not_equal( well1.getPreferredPhase(), well2.getPreferredPhase(), well_msg(well1.name(), "Well: getPreferredPhase"));
             well_count += not_equal( well1.getDrainageRadius(), well2.getDrainageRadius(), well_msg(well1.name(), "Well: getDrainageRadius"));
             well_count += not_equal( well1.getEfficiencyFactor(), well2.getEfficiencyFactor(), well_msg(well1.name(), "Well: getEfficiencyFactor"));
+
+            if (well1.getStatus() == Well::Status::OPEN)
+                well_count += not_equal(well1.predictionMode(), well2.predictionMode(), well_msg(well1.name(), "Well: predictionMode"));
         }
         count += well_count;
         if (well_count > 0)

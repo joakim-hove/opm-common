@@ -747,6 +747,28 @@ inline quantity flowing( const fn_args& args ) {
             && xwPos->second.flowing();
     };
 
+    if (args.sim_step >= 38) {
+        for (const auto& well : args.schedule_wells) {
+            printf("%s: ", well.name().c_str());
+            if (well.isInjector())
+                printf("  injector ");
+            else
+                printf("  producer ");
+
+            if (wells.count(well.name()) > 0) {
+                const auto& dw = wells.at( well.name() );
+                printf("oil:%lg  gas:%lg  water:%lg  ", dw.rates.get(rt::oil), dw.rates.get(rt::gas), dw.rates.get(rt::wat));
+                if (!dw.flowing())
+                    printf("not ");
+
+                printf("flowing");
+            }
+            printf("\n");
+        }
+        printf("-----------------------------------------------------------------\n");
+    }
+
+
     return { double( std::count_if( args.schedule_wells.begin(),
                                     args.schedule_wells.end(),
                                     pred ) ),
@@ -1980,6 +2002,7 @@ inline std::vector<Opm::Well> find_wells( const Opm::Schedule& schedule,
 
         if( !schedule[sim_step].groups.has( name ) ) return {};
 
+        printf("Group: %s \n", name.c_str());
         return schedule.getChildWells2( name, sim_step);
     }
 
