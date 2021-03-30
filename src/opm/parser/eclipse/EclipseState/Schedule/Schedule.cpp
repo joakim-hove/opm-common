@@ -1267,9 +1267,12 @@ namespace {
     void Schedule::load_rst(const RestartIO::RstState& rst_state, const EclipseGrid& grid, const FieldPropsManager& fp)
     {
         const auto report_step = rst_state.header.report_step - 1;
-        double udq_undefined = 0;
+        const auto& udq_undefined = this->snapshots.back().udq().params().undefinedValue();
         for (const auto& rst_group : rst_state.groups) {
-            this->addGroup(rst_group.name, report_step);
+            std::size_t insert_index = this->snapshots.back().groups().size();
+            auto unit_system = this->m_static.m_unit_system;
+            this->addGroup(Group(rst_group, insert_index, udq_undefined, unit_system));
+
             const auto& group = this->snapshots.back().groups.get( rst_group.name );
             if (group.isProductionGroup()) {
                 // Was originally at report_step + 1
@@ -1473,8 +1476,16 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
 
             group_count += not_equal(prod1.name, prod2.name, group_msg("Prod name"));
             group_count += not_equal(prod1.cmode, prod2.cmode, group_msg("prod CMode"));
+            group_count += not_equal(prod1.exceed_action, prod2.exceed_action, group_msg("ExceedAction"));
             group_count += not_equal(prod1.oil_target, prod2.oil_target, group_msg("Oil target"));
-            //group_count += not_equal(prod1.exceed_action, prod2.exceed_action, group_msg("ExceedAction"));
+            group_count += not_equal(prod1.gas_target, prod2.gas_target, group_msg("Gas target"));
+            group_count += not_equal(prod1.water_target, prod2.water_target, group_msg("Water target"));
+            group_count += not_equal(prod1.liquid_target, prod2.liquid_target, group_msg("Liquid target"));
+            group_count += not_equal(prod1.guide_rate, prod2.guide_rate, group_msg("Guide rate"));
+            group_count += not_equal(prod1.guide_rate_def, prod2.guide_rate_def, group_msg("Guide rate definition"));
+            group_count += not_equal(prod1.resv_target, prod2.resv_target, group_msg("RESV target"));
+            group_count += not_equal(prod1.available_group_control, prod2.available_group_control, group_msg("Available for group control"));
+            group_count += not_equal(prod1.production_controls, prod2.production_controls, group_msg("Production controls"));
         }
 
         {
