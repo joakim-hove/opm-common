@@ -57,21 +57,21 @@ Group::Group(const std::string& name, std::size_t insert_index_arg, double udq_u
 Group::Group(const RestartIO::RstGroup& rst_group, std::size_t insert_index_arg, double udq_undefined_arg, const UnitSystem& unit_system_arg) :
     Group(rst_group.name, insert_index_arg, udq_undefined_arg, unit_system_arg)
 {
-    if (rst_group.prod_cmode != 0) {
-        Group::GroupProductionProperties production(unit_system_arg, this->m_name);
-        production.oil_target.update(rst_group.oil_rate_limit);
-        production.gas_target.update(rst_group.gas_rate_limit);
-        production.water_target.update(rst_group.water_rate_limit);
-        production.liquid_target.update(rst_group.liquid_rate_limit);
-        production.cmode = Group::ProductionCModeFromInt(rst_group.prod_cmode);
-        production.guide_rate_def = Group::GuideRateProdTargetFromInt(rst_group.guide_rate_def);
-        if ((production.cmode == Group::ProductionCMode::ORAT) ||
-            (production.cmode == Group::ProductionCMode::WRAT) ||
-            (production.cmode == Group::ProductionCMode::GRAT) ||
-            (production.cmode == Group::ProductionCMode::LRAT))
-            production.exceed_action = Group::ExceedAction::RATE;
-        this->updateProduction(production);
-    }
+
+    Group::GroupProductionProperties production(unit_system_arg, this->m_name);
+    production.oil_target.update(rst_group.oil_rate_limit);
+    production.gas_target.update(rst_group.gas_rate_limit);
+    production.water_target.update(rst_group.water_rate_limit);
+    production.liquid_target.update(rst_group.liquid_rate_limit);
+    production.cmode = Group::ProductionCModeFromInt(rst_group.prod_cmode);
+    production.guide_rate_def = Group::GuideRateProdTargetFromInt(rst_group.guide_rate_def);
+    production.guide_rate = 0;
+    if ((production.active_cmode == Group::ProductionCMode::ORAT) ||
+        (production.active_cmode == Group::ProductionCMode::WRAT) ||
+        (production.active_cmode == Group::ProductionCMode::GRAT) ||
+        (production.active_cmode == Group::ProductionCMode::LRAT))
+        production.exceed_action = Group::ExceedAction::RATE;
+    this->updateProduction(production);
 
     if (rst_group.winj_cmode != 0) {
         Group::GroupInjectionProperties injection;
