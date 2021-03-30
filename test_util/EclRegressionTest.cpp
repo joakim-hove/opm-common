@@ -124,8 +124,7 @@ int rst_cmp_group(const Opm::RestartIO::RstGroup& group1, const Opm::RestartIO::
 
     error_count += compare(group1.name, group1.name,              group2.name,                  "Different names for group: {}  case1: {}  case2: {}");
     error_count += compare(group1.name, group1.parent_group,      group2.parent_group,          "Different parent_group for group: {}  case1: {}  case2: {}");
-    error_count += compare(group1.name, group1.prod_active_cmode, group2.prod_active_cmode,     "Different prod_active_cmode for group: {}  case1: {}  case2: {}");
-    error_count += compare(group1.name, group1.gconprod_cmode,    group2.gconprod_cmode,        "Different gconprod_cmode for group: {}  case1: {}  case2: {}");
+    error_count += compare(group1.name, group1.prod_cmode,        group2.prod_cmode,            "Different prod_cmode for group: {}  case1: {}  case2: {}");
     error_count += compare(group1.name, group1.winj_cmode,        group2.winj_cmode,            "Different winj_cmode for group: {}  case1: {}  case2: {}");
     error_count += compare(group1.name, group1.ginj_cmode,        group2.ginj_cmode,            "Different ginj_cmode for group: {}  case1: {}  case2: {}");
 

@@ -59,6 +59,7 @@ Group::Group(const RestartIO::RstGroup& rst_group, std::size_t insert_index_arg,
 {
 
     Group::GroupProductionProperties production(unit_system_arg, this->m_name);
+    printf("Have loaded oil_target=%lg for well:%s \n", rst_group.oil_rate_limit, rst_group.name.c_str());
     production.oil_target.update(rst_group.oil_rate_limit);
     production.gas_target.update(rst_group.gas_rate_limit);
     production.water_target.update(rst_group.water_rate_limit);
@@ -66,10 +67,10 @@ Group::Group(const RestartIO::RstGroup& rst_group, std::size_t insert_index_arg,
     production.cmode = Group::ProductionCModeFromInt(rst_group.prod_cmode);
     production.guide_rate_def = Group::GuideRateProdTargetFromInt(rst_group.guide_rate_def);
     production.guide_rate = 0;
-    if ((production.active_cmode == Group::ProductionCMode::ORAT) ||
-        (production.active_cmode == Group::ProductionCMode::WRAT) ||
-        (production.active_cmode == Group::ProductionCMode::GRAT) ||
-        (production.active_cmode == Group::ProductionCMode::LRAT))
+    if ((production.cmode == Group::ProductionCMode::ORAT) ||
+        (production.cmode == Group::ProductionCMode::WRAT) ||
+        (production.cmode == Group::ProductionCMode::GRAT) ||
+        (production.cmode == Group::ProductionCMode::LRAT))
         production.exceed_action = Group::ExceedAction::RATE;
     this->updateProduction(production);
 

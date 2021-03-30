@@ -1472,11 +1472,8 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             const auto& prod2 = group2.productionProperties();
 
             group_count += not_equal(prod1.name, prod2.name, group_msg("Prod name"));
-            printf("cmode1: %d  cmode2: %d \n", prod1.gconprod_cmode, prod2.gconprod_cmode);
-            group_count += not_equal(prod1.gconprod_cmode, prod2.gconprod_cmode, group_msg("Gconprod CMode"));
-
-            printf("cmode1: %d  cmode2: %d \n", prod1.active_cmode, prod2.active_cmode);
-            group_count += not_equal(prod1.active_cmode, prod2.active_cmode, group_msg("Active CMode"));
+            group_count += not_equal(prod1.cmode, prod2.cmode, group_msg("prod CMode"));
+            group_count += not_equal(prod1.oil_target, prod2.oil_target, group_msg("Oil target"));
             //group_count += not_equal(prod1.exceed_action, prod2.exceed_action, group_msg("ExceedAction"));
         }
 
