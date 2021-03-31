@@ -59,11 +59,26 @@ Group::Group(const RestartIO::RstGroup& rst_group, std::size_t insert_index_arg,
 {
 
     Group::GroupProductionProperties production(unit_system_arg, this->m_name);
-    printf("Have loaded oil_target=%lg for well:%s \n", rst_group.oil_rate_limit, rst_group.name.c_str());
-    production.oil_target.update(rst_group.oil_rate_limit);
-    production.gas_target.update(rst_group.gas_rate_limit);
-    production.water_target.update(rst_group.water_rate_limit);
-    production.liquid_target.update(rst_group.liquid_rate_limit);
+    if (rst_group.oil_rate_limit != 0) {
+        production.oil_target.update(rst_group.oil_rate_limit);
+        production.production_controls += static_cast<int>(ProductionCMode::ORAT);
+    }
+
+    if (rst_group.gas_rate_limit != 0) {
+        production.gas_target.update(rst_group.gas_rate_limit);
+        production.production_controls += static_cast<int>(ProductionCMode::GRAT);
+    }
+
+    if (rst_group.water_rate_limit != 0) {
+        production.water_target.update(rst_group.water_rate_limit);
+        production.production_controls += static_cast<int>(ProductionCMode::WRAT);
+    }
+
+    if (rst_group.liquid_rate_limit != 0) {
+        production.liquid_target.update(rst_group.liquid_rate_limit);
+        production.production_controls += static_cast<int>(ProductionCMode::LRAT);
+    }
+
     production.cmode = Group::ProductionCModeFromInt(rst_group.prod_cmode);
     production.guide_rate_def = Group::GuideRateProdTargetFromInt(rst_group.guide_rate_def);
     production.guide_rate = 0;
@@ -209,9 +224,11 @@ bool Group::updateProduction(const GroupProductionProperties& production) {
         update = true;
     }
 
-    if (!this->hasType(GroupType::PRODUCTION)) {
-        this->addType(GroupType::PRODUCTION);
-        update = true;
+    if (production.production_controls != 0) {
+        if (!this->hasType(GroupType::PRODUCTION)) {
+            this->addType(GroupType::PRODUCTION);
+            update = true;
+        }
     }
 
     return update;

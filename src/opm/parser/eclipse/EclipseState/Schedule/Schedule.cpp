@@ -1481,20 +1481,29 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             group_count += not_equal(prod1.gas_target, prod2.gas_target, group_msg("Gas target"));
             group_count += not_equal(prod1.water_target, prod2.water_target, group_msg("Water target"));
             group_count += not_equal(prod1.liquid_target, prod2.liquid_target, group_msg("Liquid target"));
+            group_count += not_equal(prod1.resv_target, prod2.resv_target, group_msg("RESV target"));
             group_count += not_equal(prod1.guide_rate, prod2.guide_rate, group_msg("Guide rate"));
             group_count += not_equal(prod1.guide_rate_def, prod2.guide_rate_def, group_msg("Guide rate definition"));
-            group_count += not_equal(prod1.resv_target, prod2.resv_target, group_msg("RESV target"));
-            printf("%s: available for group control: %d  %d \n", prod1.name.c_str(), prod1.available_group_control, prod2.available_group_control);
             group_count += not_equal(prod1.available_group_control, prod2.available_group_control, group_msg("Available for group control"));
             group_count += not_equal(prod1.production_controls, prod2.production_controls, group_msg("Production controls"));
         }
 
-        {
-            const auto& inj1 = group1.injectionProperties();
-            const auto& inj2 = group2.injectionProperties();
+        for (const auto& [phase,inj1] : group1.injectionProperties()) {
+            const auto& inj2 = group2.injectionProperties().at(phase);
+            group_count += not_equal(inj1.phase, inj2.phase, group_msg("Injection phase"));
+            group_count += not_equal(inj1.cmode, inj2.cmode, group_msg("CMode"));
+            group_count += not_equal(inj1.surface_max_rate, inj2.surface_max_rate, group_msg("Surface rate"));
+            group_count += not_equal(inj1.resv_max_rate, inj2.resv_max_rate, group_msg("RESV rate"));
+            group_count += not_equal(inj1.target_reinj_fraction, inj2.target_reinj_fraction, group_msg("reinj fraction"));
+            group_count += not_equal(inj1.target_void_fraction, inj2.target_void_fraction, group_msg("void_fraction"));
+            group_count += not_equal(inj1.reinj_group, inj2.reinj_group, group_msg("reinj_group"));
+            group_count += not_equal(inj1.voidage_group, inj2.voidage_group, group_msg("voidage_group"));
+            group_count += not_equal(inj1.guide_rate, inj2.guide_rate, group_msg("Guide rate"));
+            group_count += not_equal(inj1.guide_rate_def, inj2.guide_rate_def, group_msg("Guide rate definition"));
+            group_count += not_equal(inj1.available_group_control, inj2.available_group_control, group_msg("Available for group control"));
         }
 
-        group_count += not_equal(group1.getGroupType(), group2.getGroupType(), group_msg("GroupType"));
+        group_count += not_equal(static_cast<int>(group1.getGroupType()), static_cast<int>(group2.getGroupType()), group_msg("GroupType"));
     }
     count += group_count;
 
@@ -1526,7 +1535,7 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
                 well_count += not_equal( conn1.rw(), conn2.rw(), well_connection_msg(well1.name(), conn1, "rw"));
                 well_count += not_equal( conn1.depth(), conn2.depth(), well_connection_msg(well1.name(), conn1, "depth"));
 
-                //well_count += not_equal( conn1.r0(), conn2.r0(), well_connection_msg(well1.name(), conn1, "r0"));
+                well_count += not_equal( conn1.r0(), conn2.r0(), well_connection_msg(well1.name(), conn1, "r0"));
                 well_count += not_equal( conn1.skinFactor(), conn2.skinFactor(), well_connection_msg(well1.name(), conn1, "skinFactor"));
 
             }
@@ -1544,7 +1553,7 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             for (std::size_t iseg=0; iseg < segments1.size(); iseg++) {
                 const auto& segment1 = segments1[iseg];
                 const auto& segment2 = segments2[iseg];
-                //const auto& segment2 = segments2.getFromSegmentNumber(segment1.segmentNumber());
+                const auto& segment2 = segments2.getFromSegmentNumber(segment1.segmentNumber());
                 well_count += not_equal(segment1.segmentNumber(), segment2.segmentNumber(), well_segment_msg(well1.name(), segment1.segmentNumber(), "segmentNumber"));
                 well_count += not_equal(segment1.branchNumber(), segment2.branchNumber(), well_segment_msg(well1.name(), segment1.segmentNumber(), "branchNumber"));
                 well_count += not_equal(segment1.outletSegment(), segment2.outletSegment(), well_segment_msg(well1.name(), segment1.segmentNumber(), "outletSegment"));
@@ -1644,7 +1653,7 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             well_count += not_equal( well1.getAllowCrossFlow(), well2.getAllowCrossFlow(), well_msg(well1.name(), "Well: getAllowCrossFlow"));
             well_count += not_equal( well1.getSolventFraction(), well2.getSolventFraction(), well_msg(well1.name(), "Well: getSolventFraction"));
             well_count += not_equal( well1.getStatus(), well2.getStatus(), well_msg(well1.name(), "Well: getStatus"));
-            //well_count += not_equal( well1.getInjectionProperties(), well2.getInjectionProperties(), "Well: getInjectionProperties");
+            well_count += not_equal( well1.getInjectionProperties(), well2.getInjectionProperties(), "Well: getInjectionProperties");
 
 
             if (well1.isProducer())
