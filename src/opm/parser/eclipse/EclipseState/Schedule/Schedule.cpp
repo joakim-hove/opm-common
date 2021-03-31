@@ -1484,6 +1484,7 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             group_count += not_equal(prod1.guide_rate, prod2.guide_rate, group_msg("Guide rate"));
             group_count += not_equal(prod1.guide_rate_def, prod2.guide_rate_def, group_msg("Guide rate definition"));
             group_count += not_equal(prod1.resv_target, prod2.resv_target, group_msg("RESV target"));
+            printf("%s: available for group control: %d  %d \n", prod1.name.c_str(), prod1.available_group_control, prod2.available_group_control);
             group_count += not_equal(prod1.available_group_control, prod2.available_group_control, group_msg("Available for group control"));
             group_count += not_equal(prod1.production_controls, prod2.production_controls, group_msg("Production controls"));
         }
