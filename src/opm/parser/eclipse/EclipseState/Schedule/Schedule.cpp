@@ -1450,10 +1450,25 @@ std::string well_connection_msg(const std::string& well, const Connection& conn,
 
 bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t report_step) {
     int count = 0;
-    count += not_equal(sched1.m_static, sched2.m_static, "Static");
+    {
+        const auto& st1 = sched1.m_static;
+        const auto& st2 = sched2.m_static;
+        count += not_equal(st1.m_input_path, st2.m_input_path, "Static: Input path");
+        count += not_equal(st1.m_deck_message_limits, st2.m_deck_message_limits, "Static: message limits");
+        count += not_equal(st1.m_unit_system, st2.m_unit_system, "Static: UnitSystem");
+        count += not_equal(st1.rst_config, st2.rst_config, "Static: RST Config");
+        {
+            const auto& runspec1 = st1.m_runspec;
+            const auto& runspec2 = st2.m_runspec;
+            count += not_equal(runspec1.udqParams(), runspec2.udqParams(), "Runspec UDQ");
+            count += not_equal(runspec1.phases(), runspec2.phases(), "Runspec PHASES");
+            count += not_equal(runspec1.tabdims(), runspec2.tabdims(), "Runspec TABDIMS");
+            count += not_equal(runspec1.endpointScaling(), runspec2.endpointScaling(), "Runspec EndPointScaling");
+            count += not_equal(runspec1.wellDimensions(), runspec2.wellDimensions(), "Runspec well dimensions");
+            count += not_equal(runspec1.wellSegmentDimensions(), runspec2.wellSegmentDimensions(), "Runspec well Segment dimensions");
+        }
+    }
     count += not_equal(sched1.wellNames(report_step), sched2.wellNames(report_step), "Wellnames");
-    if (count != 0)
-        return false;
 
     int group_count = 0;
     for (const auto& gname : sched1.groupNames(report_step)) {
