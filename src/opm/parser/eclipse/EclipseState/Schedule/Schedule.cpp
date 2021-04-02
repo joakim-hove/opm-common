@@ -1537,7 +1537,6 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
 
                 well_count += not_equal( conn1.r0(), conn2.r0(), well_connection_msg(well1.name(), conn1, "r0"));
                 well_count += not_equal( conn1.skinFactor(), conn2.skinFactor(), well_connection_msg(well1.name(), conn1, "skinFactor"));
-
             }
         }
 
@@ -1552,7 +1551,6 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
 
             for (std::size_t iseg=0; iseg < segments1.size(); iseg++) {
                 const auto& segment1 = segments1[iseg];
-                const auto& segment2 = segments2[iseg];
                 const auto& segment2 = segments2.getFromSegmentNumber(segment1.segmentNumber());
                 well_count += not_equal(segment1.segmentNumber(), segment2.segmentNumber(), well_segment_msg(well1.name(), segment1.segmentNumber(), "segmentNumber"));
                 well_count += not_equal(segment1.branchNumber(), segment2.branchNumber(), well_segment_msg(well1.name(), segment1.segmentNumber(), "branchNumber"));
@@ -1653,7 +1651,7 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             well_count += not_equal( well1.getAllowCrossFlow(), well2.getAllowCrossFlow(), well_msg(well1.name(), "Well: getAllowCrossFlow"));
             well_count += not_equal( well1.getSolventFraction(), well2.getSolventFraction(), well_msg(well1.name(), "Well: getSolventFraction"));
             well_count += not_equal( well1.getStatus(), well2.getStatus(), well_msg(well1.name(), "Well: getStatus"));
-            well_count += not_equal( well1.getInjectionProperties(), well2.getInjectionProperties(), "Well: getInjectionProperties");
+            //well_count += not_equal( well1.getInjectionProperties(), well2.getInjectionProperties(), "Well: getInjectionProperties");
 
 
             if (well1.isProducer())
