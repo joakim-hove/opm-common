@@ -1449,7 +1449,9 @@ std::string well_connection_msg(const std::string& well, const Connection& conn,
 }
 
 bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t report_step) {
-    int count = not_equal(sched1.wellNames(report_step), sched2.wellNames(report_step), "Wellnames");
+    int count = 0;
+    count += not_equal(sched1.m_static, sched2.m_static, "Static");
+    count += not_equal(sched1.wellNames(report_step), sched2.wellNames(report_step), "Wellnames");
     if (count != 0)
         return false;
 
