@@ -1466,6 +1466,8 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             count += not_equal(runspec1.endpointScaling(), runspec2.endpointScaling(), "Runspec EndPointScaling");
             count += not_equal(runspec1.wellDimensions(), runspec2.wellDimensions(), "Runspec well dimensions");
             count += not_equal(runspec1.wellSegmentDimensions(), runspec2.wellSegmentDimensions(), "Runspec well Segment dimensions");
+            count += not_equal(runspec1.networkDimensions(), runspec2.networkDimensions(), "Runspec networkDimensions");
+            count += not_equal(runspec1.aquiferDimensions(), runspec2.aquiferDimensions(), "Runspec aquiferDimensions");
         }
     }
     count += not_equal(sched1.wellNames(report_step), sched2.wellNames(report_step), "Wellnames");
