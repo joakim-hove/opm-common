@@ -1486,9 +1486,11 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
         group_count += not_equal(group1.parent(), group2.parent(), group_msg("Parent"));
         group_count += not_equal(group1.wells(), group2.wells(), group_msg("Wells"));
         group_count += not_equal(group1.groups(), group2.groups(), group_msg("Groups"));
+        group_count += not_equal(group1.gpmaint(), group2.gpmaint(), group_msg("GPMaint"));
         group_count += not_equal(group1.getGroupEfficiencyFactor(), group2.getGroupEfficiencyFactor(), group_msg("GEFAC"));
         group_count += not_equal(group1.getTransferGroupEfficiencyFactor(), group2.getTransferGroupEfficiencyFactor(), group_msg("Transfer_GEFAC"));
         group_count += not_equal(group1.getGroupNetVFPTable(), group2.getGroupNetVFPTable(), group_msg("VFP Table"));
+        group_count += not_equal(static_cast<int>(group1.getGroupType()), static_cast<int>(group2.getGroupType()), group_msg("GroupType"));
         {
             const auto& prod1 = group1.productionProperties();
             const auto& prod2 = group2.productionProperties();
@@ -1521,8 +1523,6 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             group_count += not_equal(inj1.guide_rate_def, inj2.guide_rate_def, group_msg("Guide rate definition"));
             group_count += not_equal(inj1.available_group_control, inj2.available_group_control, group_msg("Available for group control"));
         }
-
-        group_count += not_equal(static_cast<int>(group1.getGroupType()), static_cast<int>(group2.getGroupType()), group_msg("GroupType"));
     }
     count += group_count;
 
