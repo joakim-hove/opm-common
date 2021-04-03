@@ -1491,6 +1491,9 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
         group_count += not_equal(group1.getTransferGroupEfficiencyFactor(), group2.getTransferGroupEfficiencyFactor(), group_msg("Transfer_GEFAC"));
         group_count += not_equal(group1.getGroupNetVFPTable(), group2.getGroupNetVFPTable(), group_msg("VFP Table"));
         group_count += not_equal(static_cast<int>(group1.getGroupType()), static_cast<int>(group2.getGroupType()), group_msg("GroupType"));
+        group_count += not_equal(group1.has_topup_phase(), group2.has_topup_phase(), group_msg("Has topup_phase"));
+        if (group1.has_topup_phase() && group2.has_topup_phase())
+            group_count += not_equal(group1.topup_phase(), group2.topup_phase(), "Topup phase");
         {
             const auto& prod1 = group1.productionProperties();
             const auto& prod2 = group2.productionProperties();
@@ -1509,10 +1512,14 @@ bool Schedule::cmp(const Schedule& sched1, const Schedule& sched2, std::size_t r
             group_count += not_equal(prod1.production_controls, prod2.production_controls, group_msg("Production controls"));
         }
 
+        group_count += not_equal(group1.injectionProperties().size(), group2.injectionProperties().size(), group_msg("Num injection phases"));
+        printf("%s: Injection phases: %ld \n", group1.name().c_str(), group1.injectionProperties().size());
         for (const auto& [phase,inj1] : group1.injectionProperties()) {
             const auto& inj2 = group2.injectionProperties().at(phase);
+            printf("%s: sjekker phase: %d cmode:%s\n", group1.name().c_str(), static_cast<int>(inj1.phase), Group::InjectionCMode2String(inj1.cmode).c_str());
             group_count += not_equal(inj1.phase, inj2.phase, group_msg("Injection phase"));
             group_count += not_equal(inj1.cmode, inj2.cmode, group_msg("CMode"));
+            group_count += not_equal(inj1.injection_controls, inj2.injection_controls, group_msg("Controls"));
             group_count += not_equal(inj1.surface_max_rate, inj2.surface_max_rate, group_msg("Surface rate"));
             group_count += not_equal(inj1.resv_max_rate, inj2.resv_max_rate, group_msg("RESV rate"));
             group_count += not_equal(inj1.target_reinj_fraction, inj2.target_reinj_fraction, group_msg("reinj fraction"));
