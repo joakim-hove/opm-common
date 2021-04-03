@@ -131,8 +131,7 @@ public:
                this->maxGroupsInField() == data.maxGroupsInField() &&
                this->maxWellsInField() == data.maxWellsInField() &&
                this->maxWellListsPrWell() == data.maxWellListsPrWell() &&
-               this->maxDynamicWellLists() == data.maxDynamicWellLists() &&
-               this->location() == data.location();
+               this->maxDynamicWellLists() == data.maxDynamicWellLists();
     }
 
     template<class Serializer>
