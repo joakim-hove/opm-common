@@ -89,27 +89,23 @@ Group::Group(const RestartIO::RstGroup& rst_group, std::size_t insert_index_arg,
         production.exceed_action = Group::ExceedAction::RATE;
     this->updateProduction(production);
 
-    if (rst_group.winj_cmode != 0) {
-        Group::GroupInjectionProperties injection;
-        injection.surface_max_rate.update(rst_group.water_surface_limit);
-        injection.resv_max_rate.update(rst_group.water_reservoir_limit);
-        injection.target_reinj_fraction.update(rst_group.water_reinject_limit);
-        injection.target_void_fraction.update(rst_group.water_voidage_limit);
-        injection.phase = Phase::WATER;
-        injection.cmode = Group::InjectionCModeFromInt(rst_group.winj_cmode);
-        this->updateInjection(injection);
-    }
+    Group::GroupInjectionProperties water_injection;
+    water_injection.surface_max_rate.update(rst_group.water_surface_limit);
+    water_injection.resv_max_rate.update(rst_group.water_reservoir_limit);
+    water_injection.target_reinj_fraction.update(rst_group.water_reinject_limit);
+    water_injection.target_void_fraction.update(rst_group.water_voidage_limit);
+    water_injection.phase = Phase::WATER;
+    water_injection.cmode = Group::InjectionCModeFromInt(rst_group.winj_cmode);
+    this->updateInjection(water_injection);
 
-    if (rst_group.ginj_cmode != 0) {
-        Group::GroupInjectionProperties injection;
-        injection.surface_max_rate.update(rst_group.gas_surface_limit);
-        injection.resv_max_rate.update(rst_group.gas_reservoir_limit);
-        injection.target_reinj_fraction.update(rst_group.gas_reinject_limit);
-        injection.target_void_fraction.update(rst_group.gas_voidage_limit);
-        injection.phase = Phase::GAS;
-        injection.cmode = Group::InjectionCModeFromInt(rst_group.ginj_cmode);
-        this->updateInjection(injection);
-    }
+    Group::GroupInjectionProperties gas_injection;
+    gas_injection.surface_max_rate.update(rst_group.gas_surface_limit);
+    gas_injection.resv_max_rate.update(rst_group.gas_reservoir_limit);
+    gas_injection.target_reinj_fraction.update(rst_group.gas_reinject_limit);
+    gas_injection.target_void_fraction.update(rst_group.gas_voidage_limit);
+    gas_injection.phase = Phase::GAS;
+    gas_injection.cmode = Group::InjectionCModeFromInt(rst_group.ginj_cmode);
+    this->updateInjection(gas_injection);
 }
 
 
