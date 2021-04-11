@@ -229,6 +229,7 @@ if(ENABLE_ECL_INPUT)
           python/cxx/eclipse_config.cpp
           python/cxx/eclipse_grid.cpp
           python/cxx/eclipse_state.cpp
+          python/cxx/emodel_util.cpp
           python/cxx/export.cpp
           python/cxx/group.cpp
           python/cxx/log.cpp

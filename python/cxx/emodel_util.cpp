@@ -2,12 +2,12 @@
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 
-#include <src/opm/utility/EModel.cpp>
+#include <opm/utility/EModel.hpp>
 
 #include "export.hpp"
 #include "converters.hpp"
 
-#include <src/opm/common/utility/numeric/calculateCellVol.cpp>
+#include <opm/common/utility/numeric/calculateCellVol.hpp>
 
 namespace py = pybind11;
 
