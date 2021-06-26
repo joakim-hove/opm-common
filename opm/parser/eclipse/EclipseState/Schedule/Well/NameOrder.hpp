@@ -38,6 +38,7 @@ class NameOrder {
 public:
     NameOrder() = default;
     explicit NameOrder(std::initializer_list<std::string> names);
+    explicit NameOrder(const std::vector<std::string>& names);
     void add(const std::string& name);
     std::vector<std::string> sort(std::vector<std::string> names) const;
     const std::vector<std::string>& names() const;

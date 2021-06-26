@@ -34,6 +34,7 @@ public:
     WellMatcher() = default;
     explicit WellMatcher(const NameOrder& well_order);
     explicit WellMatcher(std::initializer_list<std::string> wells);
+    explicit WellMatcher(const std::vector<std::string>& wells);
     WellMatcher(const NameOrder& well_order, const WListManager& wlm);
     std::vector<std::string> wells(const std::string& pattern) const;
     const std::vector<std::string>& wells() const;

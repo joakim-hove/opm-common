@@ -30,6 +30,10 @@ void NameOrder::add(const std::string& name) {
     }
 }
 
+NameOrder::NameOrder(const std::vector<std::string>& names) {
+    for (const auto& w : names)
+        this->add(w);
+}
 
 NameOrder::NameOrder(std::initializer_list<std::string> names) {
     for (const auto& w : names)
