@@ -771,16 +771,19 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
         BOOST_CHECK_EQUAL(input_config.definitions().size(), rst_config.definitions().size());
 
         Opm::UDQState rst_udq_state(udq_params.undefinedValue());
+        Opm::UDQFunctionTable udqft(udq_params);
+        Opm::UDQContext input_context(udqft, Opm::WellMatcher({"PROD1", "PROD2", "WINJ1", "WINJ2"}), st, udq_state);
+        Opm::UDQContext rst_context(udqft, Opm::WellMatcher({"PROD1", "PROD2", "WINJ1", "WINJ2"}), st, rst_udq_state);
+
         rst_udq_state.load_rst(rst_state);
-        {
-            Opm::UDQFunctionTable udqft(udq_params);
-            Opm::UDQContext context(udqft, Opm::WellMatcher({"PROD1", "PROD2", "WINJ1", "WINJ2"}), st, udq_state);
-            auto input_eval = input_config.define("WULPRU").eval(context);
-            auto rst_eval   = input_config.define("WULPRU").eval(context);
+        for (const auto& input_def : input_config.definitions()) {
+            const auto& rst_def = rst_config.define( input_def.keyword() );
+
+            auto input_eval = input_def.eval(input_context);
+            auto rst_eval   = rst_def.eval(rst_context);
 
             BOOST_CHECK(input_eval == rst_eval);
         }
-
     }
 }
 
