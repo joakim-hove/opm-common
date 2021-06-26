@@ -758,6 +758,16 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
         const auto& input_config = sched[1].udq();
         Opm::UDQConfig rst_config(udq_params, rst_state);
         BOOST_CHECK_EQUAL(input_config.size(), rst_config.size());
+        BOOST_CHECK_EQUAL(input_config.definitions().size(), rst_config.definitions().size());
+
+        {
+            Opm::UDQContext context(udq_params, {}, st, udq_state);
+            auto input_eval = input_config.define("WULPRU").eval(context);
+            auto rst_eval   = input_config.define("WULPRU").eval(context);
+        }
+
+        Opm::UDQState rst_udq_state(udq_params.undefinedValue());
+        rst_udq_state.load_rst(rst_state);
     }
 }
 

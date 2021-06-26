@@ -22,6 +22,7 @@
 
 #include <opm/common/utility/Serializer.hpp>
 #include <opm/parser/eclipse/EclipseState/Schedule/UDQ/UDQState.hpp>
+#include <opm/io/eclipse/rst/state.hpp>
 
 namespace Opm {
 
@@ -94,6 +95,34 @@ double get_wg(const std::unordered_map<std::string, std::unordered_map<std::stri
 
 }
 
+void UDQState::load_rst(const RestartIO::RstState& rst_state) {
+    for (const auto& udq : rst_state.udqs) {
+        if (udq.define.has_value()) {
+            for (const auto& [wname, value] : udq.well_values)
+                this->well_values[udq.name][wname] = value;
+
+            for (const auto& [gname, value] : udq.group_values)
+                this->group_values[udq.name][gname] = value;
+
+            if (udq.field_value.has_value())
+                this->scalar_values[udq.name] = udq.field_value.value();
+        } else {
+            auto value = udq.assign_value.value();
+            if (udq.var_type == UDQVarType::WELL_VAR) {
+                for (const auto& wname : udq.assign_selector)
+                    this->well_values[udq.name][wname] = value;
+            }
+
+            if (udq.var_type == UDQVarType::GROUP_VAR) {
+                for (const auto& gname : udq.assign_selector)
+                    this->well_values[udq.name][gname] = value;
+            }
+
+            if (udq.var_type == UDQVarType::FIELD_VAR)
+                this->scalar_values[udq.name] = value;
+        }
+    }
+}
 
 double UDQState::undefined_value() const {
     return this->undef_value;

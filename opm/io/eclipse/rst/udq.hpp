@@ -49,16 +49,19 @@ struct RstUDQ {
     void update_assign(double value);
 
 
+    // Common properties
     std::string name;
     std::string unit;
     UDQVarType var_type;
 
+    // DEFINE properties
     std::optional<std::string> define;
     UDQUpdate status;
     std::vector<std::pair<std::string, double>> well_values;
     std::vector<std::pair<std::string, double>> group_values;
-    double field_value;
+    std::optional<double> field_value;
 
+    // ASSIGN properties
     std::unordered_set<std::string> assign_selector;
     std::optional<double> assign_value;
 };
