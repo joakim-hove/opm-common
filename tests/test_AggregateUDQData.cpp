@@ -107,7 +107,7 @@ Opm::UDQSet make_udq_set(const std::string& name, Opm::UDQVarType var_type, cons
         state.add_define(0, "WULPRL", make_udq_set("WULPRL",
                                                    Opm::UDQVarType::WELL_VAR,
                                                    {"PROD1", "PROD2", "WINJ1", "WINJ2"},
-                                                   {230, 230, 230, 230}));
+                                                   {400, 400, 400, 400}));
 
         state.add_define(0, "WULPRU", make_udq_set("WULPRU",
                                                    Opm::UDQVarType::WELL_VAR,
@@ -131,10 +131,10 @@ Opm::UDQSet make_udq_set(const std::string& name, Opm::UDQVarType var_type, cons
         state.update_well_var("WINJ1", "WUOPRL", 212.);
         state.update_well_var("WINJ2", "WUOPRL", 213.);
 
-        state.update_well_var("PROD1", "WULPRL", 230.);
-        state.update_well_var("PROD2", "WULPRL", 230.);
-        state.update_well_var("WINJ1", "WULPRL", 230.);
-        state.update_well_var("WINJ2", "WULPRL", 230.);
+        state.update_well_var("PROD1", "WULPRL", 400.);
+        state.update_well_var("PROD2", "WULPRL", 400.);
+        state.update_well_var("WINJ1", "WULPRL", 400.);
+        state.update_well_var("WINJ2", "WULPRL", 400.);
 
         state.update_well_var("PROD1", "WUOPRU", 220.);
         state.update_well_var("PROD2", "WUOPRU", 221.);
@@ -671,7 +671,7 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
 
     }
 
-#if 0
+
     {
         /*
         'DUDW    '          24 'DOUB'
@@ -690,15 +690,15 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
         BOOST_CHECK_EQUAL(dUdw[start + 4] ,  -0.3E+21); // duDw NO. 1
 
         start = 1*udqDims[8];
-        BOOST_CHECK_EQUAL(dUdw[start + 0] ,       230); // duDw NO. 1
-        BOOST_CHECK_EQUAL(dUdw[start + 1] ,       231); // duDw NO. 1
-        BOOST_CHECK_EQUAL(dUdw[start + 2] ,       232); // duDw NO. 1
-        BOOST_CHECK_EQUAL(dUdw[start + 3] ,       233); // duDw NO. 1
+        BOOST_CHECK_EQUAL(dUdw[start + 0] ,       400); // duDw NO. 1
+        BOOST_CHECK_EQUAL(dUdw[start + 1] ,       400); // duDw NO. 1
+        BOOST_CHECK_EQUAL(dUdw[start + 2] ,       400); // duDw NO. 1
+        BOOST_CHECK_EQUAL(dUdw[start + 3] ,       400); // duDw NO. 1
         BOOST_CHECK_EQUAL(dUdw[start + 4] ,  -0.3E+21); // duDw NO. 1
 
 
     }
-#endif
+
     {
         /*
         'DUDG    '          5 'DOUB'
@@ -770,10 +770,11 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
         BOOST_CHECK_EQUAL(input_config.size(), rst_config.size());
         BOOST_CHECK_EQUAL(input_config.definitions().size(), rst_config.definitions().size());
 
+        const std::vector<std::string>& wells = {"PROD1", "PROD2", "WINJ1", "WINJ2"};
         Opm::UDQState rst_udq_state(udq_params.undefinedValue());
         Opm::UDQFunctionTable udqft(udq_params);
-        Opm::UDQContext input_context(udqft, Opm::WellMatcher({"PROD1", "PROD2", "WINJ1", "WINJ2"}), st, udq_state);
-        Opm::UDQContext rst_context(udqft, Opm::WellMatcher({"PROD1", "PROD2", "WINJ1", "WINJ2"}), st, rst_udq_state);
+        Opm::UDQContext input_context(udqft, Opm::WellMatcher(wells), st, udq_state);
+        Opm::UDQContext rst_context(udqft, Opm::WellMatcher(wells), st, rst_udq_state);
 
         rst_udq_state.load_rst(rst_state);
         for (const auto& input_def : input_config.definitions()) {
@@ -781,6 +782,15 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
 
             auto input_eval = input_def.eval(input_context);
             auto rst_eval   = rst_def.eval(rst_context);
+
+            BOOST_CHECK(input_eval == rst_eval);
+        }
+
+        for (const auto& input_assign : input_config.assignments()) {
+            const auto& rst_assign = rst_config.assign( input_assign.keyword() );
+
+            auto input_eval = input_assign.eval(wells);
+            auto rst_eval   = rst_assign.eval(wells);
 
             BOOST_CHECK(input_eval == rst_eval);
         }

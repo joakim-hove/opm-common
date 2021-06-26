@@ -212,7 +212,7 @@ void RstState::add_udqs(const std::vector<int>& iudq,
         auto& udq = this->udqs.back();
         if (udq.var_type == UDQVarType::WELL_VAR) {
             for (std::size_t well_index = 0; well_index < this->wells.size(); well_index++) {
-                auto well_value = dudw[ udq_index * this->header.num_wells + well_index];
+                auto well_value = dudw[ udq_index * this->header.max_wells_in_field + well_index];
                 if (well_value == UDQ::restart_default)
                     continue;
 
