@@ -22,6 +22,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -45,6 +46,8 @@ struct RstUDQ {
     void add_well_value(const std::string& wname, double value);
     void add_group_value(const std::string& wname, double value);
     void add_field_value(double value);
+    void update_assign(double value);
+
 
     std::string name;
     std::string unit;
@@ -55,6 +58,9 @@ struct RstUDQ {
     std::vector<std::pair<std::string, double>> well_values;
     std::vector<std::pair<std::string, double>> group_values;
     double field_value;
+
+    std::unordered_set<std::string> assign_selector;
+    std::optional<double> assign_value;
 };
 
 

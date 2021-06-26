@@ -103,10 +103,11 @@ Opm::UDQSet make_udq_set(const std::string& name, Opm::UDQVarType var_type, cons
                                                    {"PROD1", "PROD2", "WINJ1", "WINJ2"},
                                                    {220, 221, 222, 223}));
 
+        // The WULPRL should really be an ASSIGN
         state.add_define(0, "WULPRL", make_udq_set("WULPRL",
                                                    Opm::UDQVarType::WELL_VAR,
                                                    {"PROD1", "PROD2", "WINJ1", "WINJ2"},
-                                                   {230, 231, 232, 233}));
+                                                   {230, 230, 230, 230}));
 
         state.add_define(0, "WULPRU", make_udq_set("WULPRU",
                                                    Opm::UDQVarType::WELL_VAR,
@@ -131,9 +132,9 @@ Opm::UDQSet make_udq_set(const std::string& name, Opm::UDQVarType var_type, cons
         state.update_well_var("WINJ2", "WUOPRL", 213.);
 
         state.update_well_var("PROD1", "WULPRL", 230.);
-        state.update_well_var("PROD2", "WULPRL", 231.);
-        state.update_well_var("WINJ1", "WULPRL", 232.);
-        state.update_well_var("WINJ2", "WULPRL", 233.);
+        state.update_well_var("PROD2", "WULPRL", 230.);
+        state.update_well_var("WINJ1", "WULPRL", 230.);
+        state.update_well_var("WINJ2", "WULPRL", 230.);
 
         state.update_well_var("PROD1", "WUOPRU", 220.);
         state.update_well_var("PROD2", "WUOPRU", 221.);
@@ -751,6 +752,12 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
 
 
         BOOST_CHECK_EQUAL(rst_state.udqs[0].define.value(), "(WOPR PROD1 - 170) * 0.60");
+
+
+        const auto& udq_params = es.runspec().udqParams();
+        const auto& input_config = sched[1].udq();
+        Opm::UDQConfig rst_config(udq_params, rst_state);
+        BOOST_CHECK_EQUAL(input_config.size(), rst_config.size());
     }
 }
 

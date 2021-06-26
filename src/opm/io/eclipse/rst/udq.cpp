@@ -16,6 +16,8 @@
   along with OPM.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <fmt/format.h>
+
 #include <opm/io/eclipse/rst/udq.hpp>
 
 namespace Opm {
@@ -46,6 +48,14 @@ void RstUDQ::add_group_value(const std::string& wname, double value) {
 
 void RstUDQ::add_field_value(double value) {
     this->field_value = value;
+}
+
+void RstUDQ::update_assign(double value) {
+    auto current_value = this->assign_value.value_or(value);
+    if (current_value != value)
+        throw std::logic_error(fmt::format("Internal error: the UDQ {} changes value {} -> {} during restart load", this->name, current_value, value));
+
+    this->assign_value = value;
 }
 
 }

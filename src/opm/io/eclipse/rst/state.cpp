@@ -195,37 +195,59 @@ void RstState::add_udqs(const std::vector<int>& iudq,
         std::advance( zudl_begin, udq_index * UDQDims::entriesPerZUDL() );
         std::advance( zudl_end, (udq_index + 1) * UDQDims::entriesPerZUDL() );
         auto udq_define = std::accumulate(zudl_begin, zudl_end, std::string{}, std::plus<std::string>());
-        if (udq_define.empty())
+        bool assign;
+        if (udq_define.empty()) {
             this->udqs.emplace_back(name, unit);
-        else {
+            assign = true;
+        } else {
             auto status_int = iudq[udq_index * UDQDims::entriesPerIUDQ()];
             auto status = UDQ::updateType(status_int);
             if (udq_define[0] == '~')
                 udq_define[0] = '-';
 
             this->udqs.emplace_back(name, unit, udq_define, status);
+            assign = false;
         }
 
         auto& udq = this->udqs.back();
         if (udq.var_type == UDQVarType::WELL_VAR) {
             for (std::size_t well_index = 0; well_index < this->wells.size(); well_index++) {
                 auto well_value = dudw[ udq_index * this->header.num_wells + well_index];
+                if (well_value == UDQ::restart_default)
+                    continue;
+
                 const auto& well_name = this->wells[well_index].name;
-                udq.add_well_value( well_name, well_value );
+                if (assign) {
+                    udq.update_assign(well_value);
+                    udq.assign_selector.insert(well_name);
+                } else
+                    udq.add_well_value( well_name, well_value );
             }
         }
 
         if (udq.var_type == UDQVarType::GROUP_VAR) {
             for (std::size_t group_index = 0; group_index < this->groups.size(); group_index++) {
                 auto group_value = dudg[ udq_index * this->header.ngroup + group_index];
+                if (group_value == UDQ::restart_default)
+                    continue;
+
                 const auto& group_name = this->groups[group_index].name;
-                udq.add_group_value( group_name, group_value );
+                if (assign) {
+                    udq.update_assign(group_value);
+                    udq.assign_selector.insert(group_name);
+                } else
+                    udq.add_group_value( group_name, group_value );
             }
         }
 
         if (udq.var_type == UDQVarType::FIELD_VAR) {
             auto field_value = dudf[ udq_index ];
-            udq.add_field_value( field_value );
+            if (field_value != UDQ::restart_default) {
+                if (assign)
+                    udq.update_assign(field_value);
+                else
+                    udq.add_field_value( field_value );
+            }
         }
     }
 }
