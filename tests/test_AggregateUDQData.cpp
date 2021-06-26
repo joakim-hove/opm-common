@@ -149,8 +149,18 @@ Opm::UDQSet make_udq_set(const std::string& name, Opm::UDQVarType var_type, cons
         state.update_well_var("PROD2", "WULPRU", 161.);
         state.update_well_var("WINJ1", "WULPRU", 162.);
         state.update_well_var("WINJ2", "WULPRU", 163.);
-
         state.update("FULPR", 460.);
+
+        state.update_well_var("PROD1", "WOPR", 1.0);
+        state.update_well_var("PROD2", "WOPR", 1.0);
+        state.update_well_var("WINJ1", "WOPR", 0.0);
+        state.update_well_var("WINJ2", "WOPR", 0.0);
+        state.update_well_var("PROD1", "WLPR", 1.0);
+        state.update_well_var("PROD2", "WLPR", 1.0);
+        state.update_group_var("GRP1", "GOPR", 1.0);
+        state.update("FOPR", 145);
+        state.update("FLPR", 45);
+        state.update("FWPR", 450);
 
         return state;
     }
@@ -760,14 +770,17 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
         BOOST_CHECK_EQUAL(input_config.size(), rst_config.size());
         BOOST_CHECK_EQUAL(input_config.definitions().size(), rst_config.definitions().size());
 
-        {
-            Opm::UDQContext context(udq_params, {}, st, udq_state);
-            auto input_eval = input_config.define("WULPRU").eval(context);
-            auto rst_eval   = input_config.define("WULPRU").eval(context);
-        }
-
         Opm::UDQState rst_udq_state(udq_params.undefinedValue());
         rst_udq_state.load_rst(rst_state);
+        {
+            Opm::UDQFunctionTable udqft(udq_params);
+            Opm::UDQContext context(udqft, Opm::WellMatcher({"PROD1", "PROD2", "WINJ1", "WINJ2"}), st, udq_state);
+            auto input_eval = input_config.define("WULPRU").eval(context);
+            auto rst_eval   = input_config.define("WULPRU").eval(context);
+
+            BOOST_CHECK(input_eval == rst_eval);
+        }
+
     }
 }
 
