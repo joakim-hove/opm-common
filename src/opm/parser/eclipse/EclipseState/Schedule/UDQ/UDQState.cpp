@@ -98,8 +98,10 @@ double get_wg(const std::unordered_map<std::string, std::unordered_map<std::stri
 void UDQState::load_rst(const RestartIO::RstState& rst_state) {
     for (const auto& udq : rst_state.udqs) {
         if (udq.is_define()) {
-            for (const auto& [wname, value] : udq.well_values)
-                this->well_values[udq.name][wname] = value;
+            if (udq.var_type == UDQVarType::WELL_VAR) {
+                for (const auto& [wname, value] : udq.values())
+                    this->well_values[udq.name][wname] = value;
+            }
 
             for (const auto& [gname, value] : udq.group_values)
                 this->group_values[udq.name][gname] = value;

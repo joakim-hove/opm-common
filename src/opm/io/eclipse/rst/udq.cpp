@@ -60,10 +60,6 @@ bool RstUDQ::is_define() const {
     return std::holds_alternative<RstDefine>(this->data);
 }
 
-void RstUDQ::add_well_value(const std::string& wname, double value) {
-    this->well_values.emplace_back( wname, value );
-}
-
 void RstUDQ::add_value(const std::string& wgname, double value) {
     if (this->is_define()) {
         auto& def = std::get<RstDefine>(this->data);
@@ -72,6 +68,16 @@ void RstUDQ::add_value(const std::string& wgname, double value) {
         auto& assign = std::get<RstAssign>(this->data);
         assign.update_value(this->name, value);
         assign.selector.insert(wgname);
+    }
+}
+
+void RstUDQ::add_value(double value) {
+    if (this->is_define()) {
+        auto& def = std::get<RstDefine>(this->data);
+        def.field_value = value;
+    } else {
+        auto& assign = std::get<RstAssign>(this->data);
+        assign.update_value(this->name, value);
     }
 }
 
@@ -90,7 +96,6 @@ void RstUDQ::update_assign(double value) {
 
 double RstUDQ::assign_value() const {
     const auto& assign = std::get<RstAssign>(this->data);
-    printf("Accessing assign_value %s\n", this->name.c_str());
     return assign.value.value();
 }
 
@@ -102,6 +107,11 @@ const std::unordered_set<std::string>& RstUDQ::assign_selector() const {
 const std::string& RstUDQ::expression() const {
     const auto& define = std::get<RstDefine>(this->data);
     return define.expression;
+}
+
+const std::vector<std::pair<std::string, double>>& RstUDQ::values() const {
+    const auto& define = std::get<RstDefine>(this->data);
+    return define.values;
 }
 
 }

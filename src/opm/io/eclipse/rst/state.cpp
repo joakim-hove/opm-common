@@ -221,7 +221,7 @@ void RstState::add_udqs(const std::vector<int>& iudq,
                     udq.update_assign(well_value);
                     udq.add_value(well_name, well_value);
                 } else
-                    udq.add_well_value( well_name, well_value );
+                    udq.add_value( well_name, well_value );
             }
         }
 

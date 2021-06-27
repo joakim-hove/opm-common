@@ -43,7 +43,6 @@ public:
         std::string expression;
         UDQUpdate status;
         std::vector<std::pair<std::string, double>> values;
-        std::vector<std::pair<std::string, double>> well_values;
         std::vector<std::pair<std::string, double>> group_values;
         std::optional<double> field_value;
     };
@@ -64,8 +63,8 @@ public:
     RstUDQ(const std::string& name_arg,
            const std::string& unit_arg);
 
+    void add_value(double value);
     void add_value(const std::string& wgname, double value);
-    void add_well_value(const std::string& wname, double value);
     void add_group_value(const std::string& wname, double value);
     void add_field_value(double value);
     void update_assign(double value);
@@ -74,6 +73,7 @@ public:
     double assign_value() const;
     const std::unordered_set<std::string>& assign_selector() const;
     const std::string& expression() const;
+    const std::vector<std::pair<std::string, double>>& values() const;
 
     // Common properties
     std::string name;
@@ -82,13 +82,9 @@ public:
 
 
     // DEFINE properties
-    std::vector<std::pair<std::string, double>> well_values;
     std::vector<std::pair<std::string, double>> group_values;
     std::optional<double> field_value;
 
-    //// ASSIGN properties
-    //std::unordered_set<std::string> assign_selector;
-    //std::optional<double> assign_value;
 private:
     std::variant<std::monostate, RstDefine, RstAssign> data;
 };
