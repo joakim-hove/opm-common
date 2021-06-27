@@ -195,18 +195,15 @@ void RstState::add_udqs(const std::vector<int>& iudq,
         std::advance( zudl_begin, udq_index * UDQDims::entriesPerZUDL() );
         std::advance( zudl_end, (udq_index + 1) * UDQDims::entriesPerZUDL() );
         auto udq_define = std::accumulate(zudl_begin, zudl_end, std::string{}, std::plus<std::string>());
-        bool assign;
-        if (udq_define.empty()) {
+        if (udq_define.empty())
             this->udqs.emplace_back(name, unit);
-            assign = true;
-        } else {
+        else {
             auto status_int = iudq[udq_index * UDQDims::entriesPerIUDQ()];
             auto status = UDQ::updateType(status_int);
             if (udq_define[0] == '~')
                 udq_define[0] = '-';
 
             this->udqs.emplace_back(name, unit, udq_define, status);
-            assign = false;
         }
 
         auto& udq = this->udqs.back();
@@ -217,11 +214,7 @@ void RstState::add_udqs(const std::vector<int>& iudq,
                     continue;
 
                 const auto& well_name = this->wells[well_index].name;
-                if (assign) {
-                    udq.update_assign(well_value);
-                    udq.add_value(well_name, well_value);
-                } else
-                    udq.add_value( well_name, well_value );
+                udq.add_value(well_name, well_value);
             }
         }
 
@@ -232,22 +225,14 @@ void RstState::add_udqs(const std::vector<int>& iudq,
                     continue;
 
                 const auto& group_name = this->groups[group_index].name;
-                if (assign) {
-                    udq.update_assign(group_value);
-                    udq.add_value(group_name, group_value);
-                } else
-                    udq.add_group_value( group_name, group_value );
+                udq.add_value(group_name, group_value);
             }
         }
 
         if (udq.var_type == UDQVarType::FIELD_VAR) {
             auto field_value = dudf[ udq_index ];
-            if (field_value != UDQ::restart_default) {
-                if (assign)
-                    udq.update_assign(field_value);
-                else
-                    udq.add_field_value( field_value );
-            }
+            if (field_value != UDQ::restart_default)
+                udq.add_value(field_value);
         }
     }
 }

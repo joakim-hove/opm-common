@@ -81,19 +81,6 @@ void RstUDQ::add_value(double value) {
     }
 }
 
-void RstUDQ::add_group_value(const std::string& wname, double value) {
-    this->group_values.emplace_back( wname, value );
-}
-
-void RstUDQ::add_field_value(double value) {
-    this->field_value = value;
-}
-
-void RstUDQ::update_assign(double value) {
-    auto& assign = std::get<RstAssign>(this->data);
-    assign.update_value(this->name, value);
-}
-
 double RstUDQ::assign_value() const {
     const auto& assign = std::get<RstAssign>(this->data);
     return assign.value.value();
@@ -112,6 +99,11 @@ const std::string& RstUDQ::expression() const {
 const std::vector<std::pair<std::string, double>>& RstUDQ::values() const {
     const auto& define = std::get<RstDefine>(this->data);
     return define.values;
+}
+
+std::optional<double> RstUDQ::field_value() const {
+    const auto& define = std::get<RstDefine>(this->data);
+    return define.field_value;
 }
 
 }

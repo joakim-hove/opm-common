@@ -103,11 +103,14 @@ void UDQState::load_rst(const RestartIO::RstState& rst_state) {
                     this->well_values[udq.name][wname] = value;
             }
 
-            for (const auto& [gname, value] : udq.group_values)
-                this->group_values[udq.name][gname] = value;
+            if (udq.var_type == UDQVarType::GROUP_VAR) {
+                for (const auto& [gname, value] : udq.values())
+                    this->group_values[udq.name][gname] = value;
+            }
 
-            if (udq.field_value.has_value())
-                this->scalar_values[udq.name] = udq.field_value.value();
+            const auto& field_value = udq.field_value();
+            if (field_value.has_value())
+                this->scalar_values[udq.name] = field_value.value();
         } else {
             auto value = udq.assign_value();
             if (udq.var_type == UDQVarType::WELL_VAR) {

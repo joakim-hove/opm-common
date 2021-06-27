@@ -43,7 +43,6 @@ public:
         std::string expression;
         UDQUpdate status;
         std::vector<std::pair<std::string, double>> values;
-        std::vector<std::pair<std::string, double>> group_values;
         std::optional<double> field_value;
     };
 
@@ -65,25 +64,17 @@ public:
 
     void add_value(double value);
     void add_value(const std::string& wgname, double value);
-    void add_group_value(const std::string& wname, double value);
-    void add_field_value(double value);
-    void update_assign(double value);
 
     bool is_define() const;
     double assign_value() const;
     const std::unordered_set<std::string>& assign_selector() const;
     const std::string& expression() const;
     const std::vector<std::pair<std::string, double>>& values() const;
+    std::optional<double> field_value() const;
 
-    // Common properties
     std::string name;
     std::string unit;
     UDQVarType var_type;
-
-
-    // DEFINE properties
-    std::vector<std::pair<std::string, double>> group_values;
-    std::optional<double> field_value;
 
 private:
     std::variant<std::monostate, RstDefine, RstAssign> data;
