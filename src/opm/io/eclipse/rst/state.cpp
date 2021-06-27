@@ -219,7 +219,7 @@ void RstState::add_udqs(const std::vector<int>& iudq,
                 const auto& well_name = this->wells[well_index].name;
                 if (assign) {
                     udq.update_assign(well_value);
-                    udq.assign_selector.insert(well_name);
+                    udq.add_value(well_name, well_value);
                 } else
                     udq.add_well_value( well_name, well_value );
             }
@@ -234,7 +234,7 @@ void RstState::add_udqs(const std::vector<int>& iudq,
                 const auto& group_name = this->groups[group_index].name;
                 if (assign) {
                     udq.update_assign(group_value);
-                    udq.assign_selector.insert(group_name);
+                    udq.add_value(group_name, group_value);
                 } else
                     udq.add_group_value( group_name, group_value );
             }

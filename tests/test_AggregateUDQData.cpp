@@ -761,7 +761,7 @@ BOOST_AUTO_TEST_CASE (Declared_UDQ_data)
         }
 
 
-        BOOST_CHECK_EQUAL(rst_state.udqs[0].define.value(), "(WOPR PROD1 - 170) * 0.60");
+        BOOST_CHECK_EQUAL(rst_state.udqs[0].expression(), "(WOPR PROD1 - 170) * 0.60");
 
 
         const auto& udq_params = es.runspec().udqParams();

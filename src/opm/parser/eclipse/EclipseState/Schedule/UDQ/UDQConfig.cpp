@@ -51,11 +51,11 @@ namespace Opm {
         UDQConfig(params)
     {
         for (const auto& rst_udq : rst_state.udqs) {
-            if (rst_udq.define.has_value()) {
+            if (rst_udq.is_define()) {
                 KeywordLocation location("UDQ", "Restart file", 0);
-                this->add_define(rst_udq.name, location, {rst_udq.define.value()}, rst_state.header.report_step);
+                this->add_define(rst_udq.name, location, {rst_udq.expression()}, rst_state.header.report_step);
             } else
-                this->add_assign(rst_udq.name, rst_udq.assign_selector, rst_udq.assign_value.value(), rst_state.header.report_step);
+                this->add_assign(rst_udq.name, rst_udq.assign_selector(), rst_udq.assign_value(), rst_state.header.report_step);
         }
     }
 

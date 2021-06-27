@@ -23,23 +23,56 @@
 namespace Opm {
 namespace RestartIO {
 
+RstUDQ::RstDefine::RstDefine(const std::string& expression_arg, UDQUpdate status_arg) :
+    expression(expression_arg),
+    status(status_arg)
+{}
+
+
+void RstUDQ::RstAssign::update_value(const std::string& name, double new_value) {
+    auto current_value = this->value.value_or(new_value);
+    if (current_value != new_value)
+        throw std::logic_error(fmt::format("Internal error: the UDQ {} changes value {} -> {} during restart load", name, current_value, new_value));
+
+    this->value = new_value;
+}
+
+
 RstUDQ::RstUDQ(const std::string& name_arg, const std::string& unit_arg, const std::string& define_arg, UDQUpdate update_arg)
     : name(name_arg)
     , unit(unit_arg)
     , var_type(UDQ::varType(name_arg))
-    , define(define_arg)
-    , status(update_arg)
-{}
+{
+    this->data = RstDefine{define_arg, update_arg};
+}
 
 RstUDQ::RstUDQ(const std::string& name_arg, const std::string& unit_arg)
     : name(name_arg)
     , unit(unit_arg)
     , var_type(UDQ::varType(name_arg))
-{}
+{
+    this->data = RstAssign{};
+}
 
+
+
+bool RstUDQ::is_define() const {
+    return std::holds_alternative<RstDefine>(this->data);
+}
 
 void RstUDQ::add_well_value(const std::string& wname, double value) {
     this->well_values.emplace_back( wname, value );
+}
+
+void RstUDQ::add_value(const std::string& wgname, double value) {
+    if (this->is_define()) {
+        auto& def = std::get<RstDefine>(this->data);
+        def.values.emplace_back(wgname, value);
+    } else {
+        auto& assign = std::get<RstAssign>(this->data);
+        assign.update_value(this->name, value);
+        assign.selector.insert(wgname);
+    }
 }
 
 void RstUDQ::add_group_value(const std::string& wname, double value) {
@@ -51,11 +84,24 @@ void RstUDQ::add_field_value(double value) {
 }
 
 void RstUDQ::update_assign(double value) {
-    auto current_value = this->assign_value.value_or(value);
-    if (current_value != value)
-        throw std::logic_error(fmt::format("Internal error: the UDQ {} changes value {} -> {} during restart load", this->name, current_value, value));
+    auto& assign = std::get<RstAssign>(this->data);
+    assign.update_value(this->name, value);
+}
 
-    this->assign_value = value;
+double RstUDQ::assign_value() const {
+    const auto& assign = std::get<RstAssign>(this->data);
+    printf("Accessing assign_value %s\n", this->name.c_str());
+    return assign.value.value();
+}
+
+const std::unordered_set<std::string>& RstUDQ::assign_selector() const {
+    const auto& assign = std::get<RstAssign>(this->data);
+    return assign.selector;
+}
+
+const std::string& RstUDQ::expression() const {
+    const auto& define = std::get<RstDefine>(this->data);
+    return define.expression;
 }
 
 }
