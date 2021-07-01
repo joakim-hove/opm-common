@@ -220,7 +220,7 @@ void RstState::add_udqs(const std::vector<int>& iudq,
 
         if (udq.var_type == UDQVarType::GROUP_VAR) {
             for (std::size_t group_index = 0; group_index < this->groups.size(); group_index++) {
-                auto group_value = dudg[ udq_index * this->header.ngroup + group_index];
+                auto group_value = dudg[ udq_index * this->header.max_groups_in_field + group_index];
                 if (group_value == UDQ::restart_default)
                     continue;
 
