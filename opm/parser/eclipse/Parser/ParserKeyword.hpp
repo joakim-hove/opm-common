@@ -52,7 +52,21 @@ namespace Opm {
             shift(in_shift)
         {}
 
-        KeywordSize() {}
+        KeywordSize(const std::string& in_keyword,
+                    const std::string& in_item,
+                    bool table_collection,
+                    int in_shift) :
+            keyword(in_keyword),
+            item(in_item),
+            shift(in_shift),
+            is_table_collection(table_collection),
+            m_size_type(OTHER_KEYWORD_IN_DECK)
+        {}
+
+        KeywordSize()
+            : is_table_collection(false)
+            , m_size_type(SLASH_TERMINATED)
+        {}
 
         bool operator==(const KeywordSize& other) const {
             return ((this->keyword == other.keyword) &&
@@ -67,6 +81,29 @@ namespace Opm {
         std::string keyword;
         std::string item;
         int shift;
+
+        bool table_collection() const {
+            return this->is_table_collection;
+        }
+
+        ParserKeywordSizeEnum size_type() const {
+            return this->m_size_type;
+        }
+
+        const std::optional<std::size_t>& fixed_size() const {
+            return this->m_fixed_size;
+        }
+
+        bool max_size() const {
+            return this->m_max_size;
+        }
+
+
+    private:
+        bool is_table_collection;
+        ParserKeywordSizeEnum m_size_type;
+        std::optional<std::size_t> m_fixed_size;
+        bool m_max_size;
     };
 
     class ParserKeyword {

@@ -2428,3 +2428,35 @@ BOOST_AUTO_TEST_CASE(parseSections) {
 }
 
 
+BOOST_AUTO_TEST_CASE(ParserKeywordSize) {
+    {
+        KeywordSize kw_size;
+
+        BOOST_CHECK(!kw_size.table_collection());
+        BOOST_CHECK(kw_size.size_type() == SLASH_TERMINATED);
+
+        auto fixed_size = kw_size.fixed_size();
+        BOOST_CHECK(!fixed_size.has_value());
+        BOOST_CHECK(!kw_size.max_size());
+    }
+    {
+        KeywordSize kw_size("EQUIL", "NTSFUN", false, 0);
+
+        BOOST_CHECK(kw_size.size_type() == OTHER_KEYWORD_IN_DECK);
+
+        auto fixed_size = kw_size.fixed_size();
+        BOOST_CHECK(!fixed_size.has_value());
+        BOOST_CHECK(!kw_size.max_size());
+        BOOST_CHECK(!kw_size.table_collection());
+    }
+    {
+        KeywordSize kw_size("TABDIMS", "NTSFUN", true, 0);
+
+        BOOST_CHECK(kw_size.size_type() == OTHER_KEYWORD_IN_DECK);
+
+        auto fixed_size = kw_size.fixed_size();
+        BOOST_CHECK(!fixed_size.has_value());
+        BOOST_CHECK(!kw_size.max_size());
+        BOOST_CHECK(kw_size.table_collection());
+    }
+}
