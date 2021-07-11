@@ -2429,34 +2429,61 @@ BOOST_AUTO_TEST_CASE(parseSections) {
 
 
 BOOST_AUTO_TEST_CASE(ParserKeywordSize) {
+    // Default size: SLASH_TERMINATED and no special attributes
     {
         KeywordSize kw_size;
 
         BOOST_CHECK(!kw_size.table_collection());
         BOOST_CHECK(kw_size.size_type() == SLASH_TERMINATED);
 
-        auto fixed_size = kw_size.fixed_size();
-        BOOST_CHECK(!fixed_size.has_value());
-        BOOST_CHECK(!kw_size.max_size());
+        auto min_size = kw_size.min_size();
+        BOOST_CHECK(!min_size.has_value());
+
+        auto max_size = kw_size.max_size();
+        BOOST_CHECK(!max_size.has_value());
+        BOOST_CHECK(!kw_size.code());
     }
+
+    // Given from item in other keyword and no special attributes
     {
-        KeywordSize kw_size("EQUIL", "NTSFUN", false, 0);
+        KeywordSize kw_size("TABDIMS", "NTSFUN");
 
         BOOST_CHECK(kw_size.size_type() == OTHER_KEYWORD_IN_DECK);
 
-        auto fixed_size = kw_size.fixed_size();
-        BOOST_CHECK(!fixed_size.has_value());
-        BOOST_CHECK(!kw_size.max_size());
+        auto min_size = kw_size.min_size();
+        BOOST_CHECK(!min_size.has_value());
+
+        auto max_size = kw_size.max_size();
+        BOOST_CHECK(max_size.has_value());
+        BOOST_CHECK(max_size.value().index() == 1);
+        auto [kw, item] = std::get<1>(max_size.value());
+        BOOST_CHECK_EQUAL(kw, "TABDIMS");
+        BOOST_CHECK_EQUAL(item, "NTSFUN");
+
+        BOOST_CHECK_EQUAL(kw_size.shift, 0);
+        BOOST_CHECK(!kw_size.table_collection());
+        BOOST_CHECK(!kw_size.code());
+    }
+
+    // Given from item in other keyword - with size shift.
+    {
+        KeywordSize kw_size("TABDIMS", "NTSFUN", false, 1);
+
+        BOOST_CHECK(kw_size.size_type() == OTHER_KEYWORD_IN_DECK);
+        BOOST_CHECK_EQUAL(kw_size.shift, 1);
         BOOST_CHECK(!kw_size.table_collection());
     }
+
+    // Specified fixed number
     {
-        KeywordSize kw_size("TABDIMS", "NTSFUN", true, 0);
+        KeywordSize kw_size(4);
 
-        BOOST_CHECK(kw_size.size_type() == OTHER_KEYWORD_IN_DECK);
+        BOOST_CHECK(kw_size.size_type() == FIXED);
+        BOOST_CHECK_EQUAL(kw_size.shift, 0);
+        BOOST_CHECK(!kw_size.table_collection());
+        BOOST_CHECK(!kw_size.code());
 
-        auto fixed_size = kw_size.fixed_size();
-        BOOST_CHECK(!fixed_size.has_value());
-        BOOST_CHECK(!kw_size.max_size());
-        BOOST_CHECK(kw_size.table_collection());
+        auto min_size = kw_size.min_size();
+        BOOST_CHECK(!min_size.has_value());
     }
 }

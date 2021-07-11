@@ -20,10 +20,11 @@
 #define PARSER_KEYWORD_H
 
 #include <iosfwd>
+#include <optional>
+#include <regex>
 #include <string>
 #include <unordered_set>
-
-#include <regex>
+#include <variant>
 
 #include <opm/parser/eclipse/Parser/ParserEnums.hpp>
 #include <opm/parser/eclipse/Parser/ParserRecord.hpp>
@@ -49,13 +50,18 @@ namespace Opm {
         KeywordSize(const std::string& in_keyword, const std::string& in_item, int in_shift) :
             keyword(in_keyword),
             item(in_item),
-            shift(in_shift)
+            shift(in_shift),
+            m_size_type(OTHER_KEYWORD_IN_DECK)
         {}
 
         KeywordSize(const std::string& in_keyword,
-                    const std::string& in_item,
-                    bool table_collection,
-                    int in_shift) :
+                    const std::string& in_item)
+            : keyword(in_keyword)
+            , item(in_item)
+            , m_size_type(OTHER_KEYWORD_IN_DECK)
+        {}
+
+        KeywordSize(const std::string& in_keyword, const std::string& in_item, bool table_collection, int in_shift) :
             keyword(in_keyword),
             item(in_item),
             shift(in_shift),
@@ -64,8 +70,12 @@ namespace Opm {
         {}
 
         KeywordSize()
-            : is_table_collection(false)
-            , m_size_type(SLASH_TERMINATED)
+            : m_size_type(SLASH_TERMINATED)
+        {}
+
+        KeywordSize(std::size_t fixed_size)
+            : m_size_type(FIXED)
+            , m_max_size(fixed_size)
         {}
 
         bool operator==(const KeywordSize& other) const {
@@ -80,7 +90,7 @@ namespace Opm {
 
         std::string keyword;
         std::string item;
-        int shift;
+        int shift{0};
 
         bool table_collection() const {
             return this->is_table_collection;
@@ -90,20 +100,24 @@ namespace Opm {
             return this->m_size_type;
         }
 
-        const std::optional<std::size_t>& fixed_size() const {
-            return this->m_fixed_size;
+        bool code() const {
+            return this->is_code;
         }
 
-        bool max_size() const {
+        std::optional<std::size_t> min_size() {
+            return this->m_min_size;
+        }
+
+        const std::optional<std::variant<std::size_t, std::pair<std::string,std::string>>>& max_size() const {
             return this->m_max_size;
         }
 
-
     private:
-        bool is_table_collection;
+        bool is_table_collection{false};
         ParserKeywordSizeEnum m_size_type;
-        std::optional<std::size_t> m_fixed_size;
-        bool m_max_size;
+        std::optional<std::size_t> m_min_size;
+        std::optional<std::variant<std::size_t, std::pair<std::string,std::string>>> m_max_size;
+        bool is_code{false};
     };
 
     class ParserKeyword {
@@ -113,6 +127,7 @@ namespace Opm {
                       const std::string& sizeItem,
                       int size_shift,
                       bool _isTableCollection = false);
+        ParserKeyword(const std::string& name, KeywordSize kw_size);
         explicit ParserKeyword(const std::string& name);
         explicit ParserKeyword(const Json::JsonObject& jsonConfig);
 

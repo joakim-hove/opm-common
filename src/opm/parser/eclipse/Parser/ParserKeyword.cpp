@@ -67,6 +67,12 @@ namespace Opm {
         commonInit(name, FIXED);
     }
 
+    ParserKeyword::ParserKeyword(const std::string& name, KeywordSize kw_size)
+        : keyword_size(std::move(kw_size))
+        , m_name(name)
+    {
+        m_deckNames.insert(m_name);
+    }
 
     ParserKeyword::ParserKeyword(const std::string& name, const std::string& sizeKeyword, const std::string& sizeItem, int size_shift, bool _isTableCollection)
     {
